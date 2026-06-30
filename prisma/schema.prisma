@@ -1,0 +1,291 @@
+// Channels Realty — data model (Postgres via Prisma)
+// All money is stored in KOBO (1 NGN = 100 kobo) as BigInt to avoid float errors.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------- Enums ----------
+enum Role { USER ADMIN }
+enum KycStatus { NONE PENDING APPROVED REJECTED }
+enum TxType { FUNDING COMMISSION BONUS PURCHASE PAYOUT REFUND GIFTCARD MEMBERSHIP ADJUSTMENT }
+enum TxStatus { PENDING SUCCESS FAILED }
+enum OrderKind { LAND GIFTCARD MEMBERSHIP WALLET_FUNDING }
+enum OrderStatus { PENDING PAID FAILED CANCELLED }
+enum GiftCardStatus { ACTIVE REDEEMED EXPIRED }
+enum CommissionStatus { PENDING AVAILABLE PAID }
+enum MembershipTier { STARTER PRO ELITE }
+enum PayoutStatus { REQUESTED PROCESSING PAID FAILED }
+enum ListingStatus { ACTIVE SOLD CANCELLED }
+enum JVStatus { OPEN FUNDED CLOSED }
+
+// ---------- Core ----------
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  phone        String?
+  role         Role       @default(USER)
+  refCode      String     @unique
+  referredById String?
+  referredBy   User?      @relation("Downline", fields: [referredById], references: [id])
+  downline     User[]     @relation("Downline")
+  kycStatus    KycStatus  @default(NONE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  wallet       Wallet?
+  membership   Membership?
+  holdings     Holding[]
+  orders       Order[]
+  transactions Transaction[]
+  kyc          KycSubmission[]
+  payouts      Payout[]
+  giftCards    GiftCard[]
+  listings     P2PListing[]
+  jvInvest     JVInvestment[]
+  pageStats    PageStat[]
+  commissions  Commission[]  @relation("Earner")
+  sourced      Commission[]  @relation("Source")
+
+  @@index([referredById])
+}
+
+model Wallet {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance     BigInt  @default(0) // withdrawable (kobo)
+  pending     BigInt  @default(0) // clearing commissions
+  bonusCredit BigInt  @default(0) // signup bonus — spend on land only, non-withdrawable
+  points      Int     @default(0)
+  updatedAt   DateTime @updatedAt
+}
+
+model Transaction {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      TxType
+  status    TxStatus @default(SUCCESS)
+  amount    BigInt   // kobo, positive = credit, negative = debit
+  reference String   @unique @default(cuid())
+  label     String
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// ---------- Property ----------
+model Estate {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  name           String
+  city           String
+  state          String
+  pricePerSqm    BigInt   // kobo
+  totalSqm       Int
+  availableSqm   Int
+  titleType      String   @default("C of O")
+  apprPct        Int      @default(0)
+  tag            String?
+  blurb          String?
+  photo          String?
+  amenities      String[]
+  createdAt      DateTime @default(now())
+
+  drops    Drop[]
+  holdings Holding[]
+  orders   Order[]
+  listings P2PListing[]
+}
+
+model Drop {
+  id           String   @id @default(cuid())
+  estateId     String
+  estate       Estate   @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  name         String
+  phase        String   @default("Presale")
+  presalePrice BigInt
+  mainPrice    BigInt
+  regularPrice BigInt
+  minSqm       Int      @default(1)
+  startsAt     DateTime @default(now())
+  endsAt       DateTime
+  active       Boolean  @default(true)
+
+  @@index([estateId])
+}
+
+model Holding {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  estateId  String
+  estate    Estate   @relation(fields: [estateId], references: [id])
+  sqm       Int
+  cost      BigInt   // kobo paid
+  status    String   @default("Allocated")
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ---------- Orders & payments ----------
+model Order {
+  id          String      @id @default(cuid())
+  ref         String      @unique
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind        OrderKind
+  amount      BigInt      // kobo
+  status      OrderStatus @default(PENDING)
+  sqm         Int?
+  estateId    String?
+  estate      Estate?     @relation(fields: [estateId], references: [id])
+  provider    String?     // 'paystack' | 'wallet'
+  providerRef String?
+  meta        Json?
+  createdAt   DateTime    @default(now())
+  paidAt      DateTime?
+
+  @@index([userId, createdAt])
+}
+
+model GiftCard {
+  id         String         @id @default(cuid())
+  code       String         @unique
+  userId     String?
+  user       User?          @relation(fields: [userId], references: [id])
+  face       BigInt         // kobo
+  pay        BigInt
+  multiplier Float          @default(1.0)
+  status     GiftCardStatus @default(ACTIVE)
+  createdAt  DateTime       @default(now())
+  redeemedAt DateTime?
+}
+
+model Commission {
+  id           String           @id @default(cuid())
+  earnerId     String
+  earner       User             @relation("Earner", fields: [earnerId], references: [id], onDelete: Cascade)
+  sourceUserId String
+  source       User             @relation("Source", fields: [sourceUserId], references: [id])
+  orderId      String?
+  level        Int
+  amount       BigInt
+  status       CommissionStatus @default(AVAILABLE)
+  createdAt    DateTime         @default(now())
+
+  @@index([earnerId])
+}
+
+// ---------- KYC / membership / payouts ----------
+model KycSubmission {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName  String
+  dob       String?
+  address   String?
+  city      String?
+  state     String?
+  country   String?   @default("Nigeria")
+  idType    String?
+  idNumber  String?
+  idDocUrl  String?
+  selfieUrl String?
+  status    KycStatus @default(PENDING)
+  createdAt DateTime  @default(now())
+  reviewedAt DateTime?
+
+  @@index([userId])
+}
+
+model Membership {
+  id       String         @id @default(cuid())
+  userId   String         @unique
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier     MembershipTier @default(STARTER)
+  active   Boolean        @default(true)
+  startedAt DateTime      @default(now())
+  renewsAt DateTime?
+}
+
+model Payout {
+  id            String       @id @default(cuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount        BigInt
+  bankCode      String?
+  accountNumber String?
+  accountName   String?
+  status        PayoutStatus @default(REQUESTED)
+  providerRef   String?
+  createdAt     DateTime     @default(now())
+
+  @@index([userId])
+}
+
+// ---------- Investors' corner ----------
+model P2PListing {
+  id        String        @id @default(cuid())
+  sellerId  String
+  seller    User          @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  estateId  String
+  estate    Estate        @relation(fields: [estateId], references: [id])
+  sqm       Int
+  ask       BigInt
+  status    ListingStatus @default(ACTIVE)
+  createdAt DateTime      @default(now())
+
+  @@index([status])
+}
+
+model JointVenture {
+  id        String   @id @default(cuid())
+  name      String
+  city      String
+  target    BigInt
+  raised    BigInt   @default(0)
+  minInvest BigInt
+  roiPct    Int
+  months    Int
+  slots     Int
+  status    JVStatus @default(OPEN)
+  createdAt DateTime @default(now())
+
+  investments JVInvestment[]
+}
+
+model JVInvestment {
+  id        String   @id @default(cuid())
+  ventureId String
+  venture   JointVenture @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    BigInt
+  createdAt DateTime @default(now())
+
+  @@index([ventureId])
+}
+
+model PageStat {
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug    String
+  visits  Int    @default(0)
+  signups Int    @default(0)
+
+  @@unique([userId, slug])
+}
