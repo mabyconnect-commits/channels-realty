@@ -152,7 +152,7 @@ function PlotPicker() {
           <div className="row between" style={{ marginTop: 10 }}><span className="muted" style={{ fontWeight: 600 }}>Price/sqm</span><span className="num">{D.fmtNaira(e.priceSqm)}</span></div>
           <hr className="hr" style={{ margin: '16px 0' }} />
           <div className="row between"><span style={{ fontWeight: 700 }}>Total</span><span className="num font-display" style={{ fontWeight: 800, fontSize: 22 }}>{D.fmtNaira(price)}</span></div>
-          <Btn block size="lg" style={{ marginTop: 16 }} disabled={sel.size === 0} onClick={() => app.nav('checkout', { sqm, price, estate: e.name })} iconR={<Icons.arrowRight />}>Continue to pay</Btn>
+          <Btn block size="lg" style={{ marginTop: 16 }} disabled={sel.size === 0} onClick={() => app.nav('checkout', { sqm, price, estate: e.name, slug: e.id })} iconR={<Icons.arrowRight />}>Continue to pay</Btn>
         </Card>
       </div>
     </div>
@@ -167,7 +167,21 @@ function Checkout() {
   const [method, setMethod] = useState(0);
   const [step, setStep] = useState(0); // 0 review, 1 processing, 2 done
   const methods = [['Flutterwave', Icons.bolt], ['Debit card', Icons.card], ['Bank transfer', Icons.bank], ['Wallet balance', Icons.wallet]];
-  const pay = () => { setStep(1); setTimeout(() => { app.buyLand(p.sqm); setStep(2); app.fireConfetti(); }, 2100); };
+  const pay = async () => {
+    if (app.live && window.API && p.slug) {
+      setStep(1);
+      try {
+        const er = await window.API.estates();
+        const estate = (er.estates || []).find((x) => x.slug === p.slug) || (er.estates || [])[0];
+        if (!estate) throw new Error('Estate unavailable');
+        const r = await window.API.buyLand({ estateId: estate.id, sqm: p.sqm, method: method === 3 ? 'wallet' : 'paystack' });
+        if (r.authorizationUrl) { window.location.href = r.authorizationUrl; return; } // redirect to Paystack
+        app.fireConfetti(); if (app.reload) await app.reload(); setStep(2);
+      } catch (e) { setStep(0); toast(e.message || 'Payment failed'); }
+    } else {
+      setStep(1); setTimeout(() => { app.buyLand(p.sqm); setStep(2); app.fireConfetti(); }, 2100);
+    }
+  };
 
   if (step === 2) return (
     <div className="reveal center" style={{ maxWidth: 460, margin: '0 auto', paddingTop: 30 }}>

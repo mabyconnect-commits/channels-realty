@@ -113,26 +113,30 @@ function Drops() {
   const app = window.useApp();
   const D = window.DATA;
   const toast = useToast();
-  const est = window.DATA2.estates[0];
   const L = window.DATA3.launch;
-  const tiers = [
-    { k: 'Presale', price: 39900, active: true },
-    { k: 'Main Sale', price: 46999, active: false },
-    { k: 'Regular', price: 50999, active: false },
-  ];
   const quick = [25, 50, 100, 250, 500, 1000];
   const [sqm, setSqm] = useState(50);
   const [agree, setAgree] = useState(false);
   const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  // Live drop (real prices) when signed in; demo numbers otherwise.
+  const [liveDrop, setLiveDrop] = useState(null);
+  useEffect(() => {
+    if (app.live && window.API) window.API.drops().then((r) => {
+      const d = r.drops && r.drops[0];
+      if (d) setLiveDrop({ estateId: d.estateId, name: d.estate.name, city: d.estate.city, presale: Math.round(d.presalePrice / 100), main: Math.round(d.mainPrice / 100), regular: Math.round(d.regularPrice / 100) });
+    }).catch(() => {});
+  }, [app.live]);
+
+  const est = liveDrop ? { name: liveDrop.name, city: liveDrop.city } : window.DATA2.estates[0];
+  const liveEstateId = liveDrop ? liveDrop.estateId : null;
+  const tiers = liveDrop
+    ? [{ k: 'Presale', price: liveDrop.presale, active: true }, { k: 'Main Sale', price: liveDrop.main, active: false }, { k: 'Regular', price: liveDrop.regular, active: false }]
+    : [{ k: 'Presale', price: 39900, active: true }, { k: 'Main Sale', price: 46999, active: false }, { k: 'Regular', price: 50999, active: false }];
   const price = tiers[0].price;
   const total = sqm * price;
-  const save = (50999 - price) * sqm;
-
-  const [liveEstateId, setLiveEstateId] = useState(null);
-  const [busy, setBusy] = useState(false);
-  useEffect(() => {
-    if (app.live && window.API) window.API.estates().then((r) => { if (r.estates && r.estates[0]) setLiveEstateId(r.estates[0].id); }).catch(() => {});
-  }, [app.live]);
+  const save = (tiers[2].price - price) * sqm;
   const buy = async (method) => {
     if (!agree) return;
     if (app.live && window.API && liveEstateId) {

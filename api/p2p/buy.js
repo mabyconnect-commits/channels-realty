@@ -29,8 +29,18 @@ module.exports = handler('POST', async (req, res) => {
       await tx.wallet.update({ where: { userId: user.id }, data: { balance: { decrement: amount } } });
       await tx.transaction.create({ data: { userId: user.id, type: 'PURCHASE', amount: -amount, label: `Bought ${listing.sqm} sqm (P2P)`, meta: { orderId: order.id } } });
     });
-    const done = await fulfillOrder(order.id);
-    return ok(res, { paid: true, order: done });
+    try {
+      const done = await fulfillOrder(order.id);
+      return ok(res, { paid: true, order: done });
+    } catch (e) {
+      // settlement failed (e.g. listing taken first) — refund the buyer.
+      await prisma.$transaction(async (tx) => {
+        await tx.wallet.update({ where: { userId: user.id }, data: { balance: { increment: amount } } });
+        await tx.transaction.create({ data: { userId: user.id, type: 'REFUND', amount, label: 'P2P purchase failed — refunded', meta: { orderId: order.id } } });
+        await tx.order.update({ where: { id: order.id }, data: { status: 'CANCELLED' } });
+      });
+      bad(e.message || 'This listing is no longer available — you were refunded');
+    }
   }
 
   const init = await paystack.initTransaction({

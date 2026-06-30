@@ -137,7 +137,7 @@ function Root() {
       setProfile(mapUser(me.user)); setLive(true);
       const [d, w, r] = await Promise.allSettled([window.API.dashboard(), window.API.wallet(), window.API.referrals()]);
       setSt((s) => {
-        const ns = { ...s };
+        const ns = { ...s, level2: 0, parcels: [] }; // live: start from real values, not demo seeds
         if (w.status === 'fulfilled') { ns.balance = toNaira(w.value.wallet.balance); ns.pending = toNaira(w.value.wallet.pending); ns.points = w.value.wallet.points; }
         if (d.status === 'fulfilled') { ns.landSqm = d.value.summary.landSqm; ns.lifetime = toNaira(d.value.summary.totalEarned); }
         if (r.status === 'fulfilled') { ns.directRefs = r.value.stats.total; }
