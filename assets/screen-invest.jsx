@@ -337,6 +337,8 @@ function Membership() {
   const D = window.DATA;
   const toast = useToast();
   const tiers = window.DATA3.membership;
+  const idTier = { free: 'STARTER', pro: 'PRO', elite: 'ELITE' };
+  const myTier = (app.user && app.user.membership) || 'STARTER';
   const [royal, setRoyal] = useState('Monarch');
   return (
     <div className="reveal" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -353,7 +355,7 @@ function Membership() {
                 <div key={p} className="row gap-2" style={{ fontSize: 13, fontWeight: 600 }}><Icons.check size={15} style={{ color: 'var(--green-600)', flex: '0 0 15px' }} /> {p}</div>
               ))}
             </div>
-            <Btn block size="lg" variant={t.current ? 'ghost' : t.popular ? 'primary' : 'outline'} disabled={t.current} style={{ marginTop: 16 }}
+            <Btn block size="lg" variant={idTier[t.id] === myTier ? 'ghost' : t.popular ? 'primary' : 'outline'} disabled={idTier[t.id] === myTier} style={{ marginTop: 16 }}
               onClick={async () => {
                 if (app.live && window.API && t.id !== 'free') {
                   try {
@@ -363,7 +365,7 @@ function Membership() {
                   } catch (e) { toast(e.message || 'Could not upgrade'); }
                 } else { app.fireConfetti(); toast('Upgraded to ' + t.name + '!'); }
               }}>
-              {t.current ? 'Current plan' : 'Upgrade'}
+              {idTier[t.id] === myTier ? 'Current plan' : 'Upgrade'}
             </Btn>
           </Card>
         ))}

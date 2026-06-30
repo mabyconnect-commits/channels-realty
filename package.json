@@ -4,7 +4,12 @@
   "private": true,
   "description": "Channels Realty — co-own property. Frontend (Phase 1) + Vercel serverless backend (Phase 2).",
   "type": "commonjs",
+  "engines": {
+    "node": ">=18.18.0"
+  },
   "scripts": {
+    "check:jsx": "node scripts/check-jsx.js",
+    "check:api": "node scripts/check-api.js",
     "dev": "npx --yes serve -l 3000 .",
     "start": "npx --yes serve -l 3000 .",
     "postinstall": "prisma generate",

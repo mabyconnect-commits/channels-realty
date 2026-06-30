@@ -4,9 +4,13 @@ Front-end for **Channels Realty** — a fractional / co-ownership property platf
 
 ## Status
 
-**Phase 1 (current):** the actual app from the design tool runs as a static deploy. `index.html` (the bootstrap) loads `babel-standalone`, React, ReactDOM, and the JSX source files at runtime — Babel compiles the JSX in-browser before mounting to `#root`. Slower than a build step, but zero-build.
+**Phase 1 — frontend (done):** the app runs as a static deploy. `index.html` (the bootstrap) loads `babel-standalone`, React, ReactDOM, and the JSX source files at runtime — Babel compiles the JSX in-browser before mounting to `#root`. Zero-build.
 
-**Phase 2 (next):** replace the in-browser Babel with a proper Next.js / Vite build, swap React dev builds for prod, wire up real backend (auth, KYC, payments, wallet, property data).
+**Phase 2 — backend (done):** a real backend ships as **Vercel serverless functions** (`/api`) backed by **Postgres (Prisma)**, **JWT auth**, and **Paystack** payments. The frontend talks to it via `window.API` (`assets/api.js`) and **falls back to demo data** when the backend isn't configured, so the static deploy keeps working until you set the env vars. See **[BACKEND.md](BACKEND.md)** for the full setup, env vars and API reference.
+
+Live features: signup/login, KYC + admin review, wallet funding & withdrawals (real Paystack transfers), land drops & purchases, referral commissions + signup bonus, gift cards, membership, joint ventures, and a P2P market with real settlement.
+
+**Phase 3 (next):** swap the in-browser Babel for a real Next.js/Vite build (prod React, code-split), server-rendered affiliate landing pages, and email/notifications.
 
 ## Local dev
 

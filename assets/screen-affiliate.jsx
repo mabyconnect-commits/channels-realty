@@ -14,6 +14,7 @@ function Affiliate() {
     if (app.live && window.API) window.API.referrals().then((r) => setStats({
       total: r.stats.total, fullKyc: r.stats.fullKyc, partial: r.stats.partial,
       signupBonus: Math.round(r.stats.signupBonus / 100), commissions: Math.round(r.stats.commissions / 100),
+      downline: r.downline || [],
     })).catch(() => {});
   }, [app.live]);
   const totalRef = stats ? stats.total : app.directRefs;
@@ -93,6 +94,22 @@ function Affiliate() {
           </div>
         ))}
       </Card>
+
+      {/* Referred users (live) */}
+      {stats && stats.downline && stats.downline.length > 0 && (
+        <Card pad={false}>
+          <div className="row between" style={{ padding: '14px 18px' }}><h3 style={{ fontSize: 16, fontWeight: 700 }}>Referred users</h3><span className="chip">{stats.downline.length}</span></div>
+          {stats.downline.map((u) => (
+            <div key={u.id} className="row gap-3" style={{ padding: '11px 18px', borderTop: '1px solid var(--line-2)' }}>
+              <Avatar name={u.firstName + ' ' + u.lastName} size={36} />
+              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{u.firstName} {u.lastName}</div><div className="muted" style={{ fontSize: 12 }}>{new Date(u.createdAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}</div></div>
+              <span className="chip" style={{ background: u.kycStatus === 'APPROVED' ? 'var(--green-50)' : 'var(--surface-sunk)', color: u.kycStatus === 'APPROVED' ? 'var(--green-600)' : 'var(--orange-500)', fontSize: 10.5, padding: '2px 9px' }}>
+                {u.kycStatus === 'APPROVED' ? 'Verified' : 'Pending KYC'}
+              </span>
+            </div>
+          ))}
+        </Card>
+      )}
     </div>
   );
 }

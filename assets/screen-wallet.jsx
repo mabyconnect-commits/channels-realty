@@ -6,8 +6,16 @@ function Wallet() {
   const app = window.useApp();
   const [withdraw, setWithdraw] = useState(false);
   const [filter, setFilter] = useState('all');
-
-  const ledger = D.activity.filter((a) => filter === 'all' ? true : filter === 'in' ? a.positive : !a.positive);
+  const [tx, setTx] = useState(null);
+  useEffect(() => {
+    if (app.live && window.API) window.API.wallet().then((r) => setTx((r.transactions || []).map((t) => ({
+      id: t.id, label: t.label, when: new Date(t.createdAt).toLocaleString('en-NG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+      amount: Math.round(Math.abs(t.amount) / 100), positive: t.amount > 0,
+      type: t.amount < 0 ? 'withdraw' : (t.type === 'BONUS' ? 'reward' : 'commission'),
+    })))).catch(() => {});
+  }, [app.live]);
+  const source = (app.live && tx) ? tx : D.activity;
+  const ledger = source.filter((a) => filter === 'all' ? true : filter === 'in' ? a.positive : !a.positive);
 
   return (
     <div className="reveal" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
