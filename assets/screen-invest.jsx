@@ -7,7 +7,12 @@
 function Portfolio() {
   const app = window.useApp();
   const D = window.DATA;
-  const H = window.DATA3.holdings;
+  const [H, setH] = useState(app.live ? [] : window.DATA3.holdings);
+  useEffect(() => {
+    if (app.live && window.API) window.API.portfolio().then((r) => {
+      setH((r.holdings || []).map((h) => ({ id: h.id, estate: h.estate, city: h.city, sqm: h.sqm, cost: Math.round(h.cost / 100), value: Math.round(h.value / 100), appr: h.appr })));
+    }).catch(() => {});
+  }, [app.live]);
   const value = H.reduce((s, h) => s + h.value, 0);
   const cost = H.reduce((s, h) => s + h.cost, 0);
   const gain = value - cost;
@@ -62,7 +67,13 @@ function P2PMarket() {
   const app = window.useApp();
   const D = window.DATA;
   const toast = useToast();
-  const listings = window.DATA3.p2p;
+  const [listings, setListings] = useState(app.live ? [] : window.DATA3.p2p);
+  useEffect(() => {
+    if (app.live && window.API) window.API.p2p().then((r) => setListings((r.listings || []).map((l) => ({
+      id: l.id, estate: l.estate.name, city: l.estate.city, sqm: l.sqm, ask: Math.round(l.ask / 100),
+      seller: l.seller.firstName, avatar: 'assets/agent-1.jpg', verified: l.seller.kycStatus === 'APPROVED', disc: 0,
+    })))).catch(() => {});
+  }, [app.live]);
   const [tab, setTab] = useState('buy');
   const tabs = [['instant', 'Instant', Icons.bolt], ['buy', 'Buy', Icons.wallet], ['sell', 'Sell', Icons.land], ['mine', 'Mine', Icons.grid]];
   return (
@@ -165,7 +176,19 @@ function JointVentures() {
   const app = window.useApp();
   const D = window.DATA;
   const toast = useToast();
-  const V = window.DATA3.ventures;
+  const [V, setV] = useState(app.live ? [] : window.DATA3.ventures);
+  useEffect(() => {
+    if (app.live && window.API) window.API.ventures().then((r) => setV((r.ventures || []).map((v) => ({
+      id: v.id, name: v.name, city: v.city, raised: Math.round(v.raised / 100), target: Math.round(v.target / 100),
+      min: Math.round(v.minInvest / 100), roi: v.roiPct, months: v.months, slots: v.slots,
+    })))).catch(() => {});
+  }, [app.live]);
+  const join = async (v) => {
+    if (app.live && window.API) {
+      try { await window.API.investVenture(v.id, v.min); app.fireConfetti(); toast('Invested in ' + v.name); if (app.reload) await app.reload(); }
+      catch (e) { toast(e.message || 'Could not invest'); }
+    } else { app.fireConfetti(); toast('Reserved a slot in ' + v.name); }
+  };
   return (
     <div className="reveal" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <PageHead title="Joint Ventures" sub="Pool funds with other investors on bigger developments and share the returns." />
@@ -187,7 +210,7 @@ function JointVentures() {
               </div>
               <div className="row between" style={{ marginTop: 12 }}>
                 <div className="muted" style={{ fontSize: 12.5 }}>Min {D.fmtNaira(v.min)} · {v.months} mo · {v.slots} slots left</div>
-                <Btn size="sm" icon={<Icons.plus size={15} />} onClick={() => { app.fireConfetti(); toast('Reserved a slot in ' + v.name); }}>Join</Btn>
+                <Btn size="sm" icon={<Icons.plus size={15} />} onClick={() => join(v)}>Join</Btn>
               </div>
             </Card>
           );
@@ -311,7 +334,15 @@ function Membership() {
               ))}
             </div>
             <Btn block size="lg" variant={t.current ? 'ghost' : t.popular ? 'primary' : 'outline'} disabled={t.current} style={{ marginTop: 16 }}
-              onClick={() => { app.fireConfetti(); toast('Upgraded to ' + t.name + '!'); }}>
+              onClick={async () => {
+                if (app.live && window.API && t.id !== 'free') {
+                  try {
+                    const r = await window.API.upgradeMembership(t.id.toUpperCase(), 'paystack');
+                    if (r.authorizationUrl) { window.location.href = r.authorizationUrl; return; }
+                    app.fireConfetti(); toast('Upgraded to ' + t.name + '!'); if (app.reload) await app.reload();
+                  } catch (e) { toast(e.message || 'Could not upgrade'); }
+                } else { app.fireConfetti(); toast('Upgraded to ' + t.name + '!'); }
+              }}>
               {t.current ? 'Current plan' : 'Upgrade'}
             </Btn>
           </Card>
@@ -335,8 +366,21 @@ function Membership() {
 
 /* ---- Orders ---- */
 function Orders() {
+  const app = window.useApp();
   const D = window.DATA;
-  const O = window.DATA3.orders;
+  const [O, setO] = useState(app.live ? [] : window.DATA3.orders);
+  useEffect(() => {
+    if (app.live && window.API) window.API.orders().then((r) => {
+      const kindMap = { LAND: 'land', GIFTCARD: 'giftcard', MEMBERSHIP: 'land', WALLET_FUNDING: 'payout' };
+      const statusMap = { PAID: 'Completed', PENDING: 'Processing', FAILED: 'Failed', CANCELLED: 'Cancelled' };
+      const label = (o) => o.kind === 'LAND' ? `${o.sqm || ''} sqm — ${o.estate ? o.estate.name : 'Land'}`
+        : o.kind === 'GIFTCARD' ? 'Gift card' : o.kind === 'MEMBERSHIP' ? 'Membership' : 'Wallet funding';
+      setO((r.orders || []).map((o) => ({
+        id: o.ref, item: label(o), amount: Math.round(o.amount / 100), status: statusMap[o.status] || o.status,
+        date: new Date(o.createdAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }), kind: kindMap[o.kind] || 'land',
+      })));
+    }).catch(() => {});
+  }, [app.live]);
   const icon = (k) => k === 'giftcard' ? Icons.gift : k === 'payout' ? Icons.bank : Icons.land;
   return (
     <div className="reveal" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

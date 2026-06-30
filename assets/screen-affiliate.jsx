@@ -9,10 +9,18 @@ function Affiliate() {
   const D = window.DATA;
   const toast = useToast();
   const link = 'https://' + app.user.refLink;
-  const fullKyc = Math.round(app.directRefs * 0.7);
-  const partial = app.directRefs - fullKyc;
-  const signupBonus = fullKyc * 2000;
-  const commissions = app.balance;
+  const [stats, setStats] = useState(null);
+  useEffect(() => {
+    if (app.live && window.API) window.API.referrals().then((r) => setStats({
+      total: r.stats.total, fullKyc: r.stats.fullKyc, partial: r.stats.partial,
+      signupBonus: Math.round(r.stats.signupBonus / 100), commissions: Math.round(r.stats.commissions / 100),
+    })).catch(() => {});
+  }, [app.live]);
+  const totalRef = stats ? stats.total : app.directRefs;
+  const fullKyc = stats ? stats.fullKyc : Math.round(app.directRefs * 0.7);
+  const partial = stats ? stats.partial : app.directRefs - fullKyc;
+  const signupBonus = stats ? stats.signupBonus : fullKyc * 2000;
+  const commissions = stats ? stats.commissions : app.balance;
 
   const stat = (label, value, sub, accent) => (
     <Card style={{ padding: 16 }}>
@@ -27,7 +35,7 @@ function Affiliate() {
       <PageHead title="Referrals & Earnings" sub="Invite people, earn on every plot they buy, and bank your launch signup bonus." />
 
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(150px,1fr))', gap: 10 }}>
-        {stat('Total referred', <CountNum value={app.directRefs} />)}
+        {stat('Total referred', <CountNum value={totalRef} />)}
         {stat('Fully KYC verified', <CountNum value={fullKyc} />, 'Bonus paid only on full KYC', 'var(--green-600)')}
         {stat('Partial verified', <CountNum value={partial} />, 'No bonus yet', 'var(--orange-500)')}
         {stat('Total earned', <CountNaira value={app.lifetime} />, 'Commissions + bonuses', 'var(--teal-700)')}

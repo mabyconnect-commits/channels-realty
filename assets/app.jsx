@@ -106,16 +106,60 @@ function Root() {
   const screen = top.id;
   const param = top.param;
 
-  const base = window.DATA.user;
+  const [profile, setProfile] = useState(null);   // live user (null = demo)
+  const [live, setLive] = useState(false);          // backend session active
+  const base = profile || window.DATA.user;
   const [st, setSt] = useState({
-    balance: base.balance, pending: base.pending, lifetime: base.lifetime,
-    directRefs: base.directRefs, level2: base.level2,
-    landSqm: base.landSqm, points: base.points,
+    balance: window.DATA.user.balance, pending: window.DATA.user.pending, lifetime: window.DATA.user.lifetime,
+    directRefs: window.DATA.user.directRefs, level2: window.DATA.user.level2,
+    landSqm: window.DATA.user.landSqm, points: window.DATA.user.points,
     claimed: ['kit', 'm75'],
     tasksDone: window.DATA.tasks.filter((x) => x.done).map((x) => x.id),
     parcels: window.DATA.parcels,
     notifRead: false,
   });
+
+  // ---- Live backend integration (graceful fallback to demo data) ----
+  const toNaira = (kobo) => Math.round((kobo || 0) / 100);
+  const mapUser = (u) => ({
+    ...window.DATA.user,
+    name: (u.firstName + ' ' + u.lastName).trim(), first: u.firstName,
+    email: u.email, phone: u.phone || window.DATA.user.phone,
+    refCode: u.refCode, refLink: 'channels.realty/r/' + u.refCode,
+    kyc: u.kycStatus === 'APPROVED', kycStatus: u.kycStatus,
+    membership: u.membership || 'STARTER', isAffiliate: true,
+  });
+  const loadProfile = useCallback(async () => {
+    if (!window.API) return false;
+    try {
+      const me = await window.API.me();
+      setProfile(mapUser(me.user)); setLive(true);
+      const [d, w, r] = await Promise.allSettled([window.API.dashboard(), window.API.wallet(), window.API.referrals()]);
+      setSt((s) => {
+        const ns = { ...s };
+        if (w.status === 'fulfilled') { ns.balance = toNaira(w.value.wallet.balance); ns.pending = toNaira(w.value.wallet.pending); ns.points = w.value.wallet.points; }
+        if (d.status === 'fulfilled') { ns.landSqm = d.value.summary.landSqm; ns.lifetime = toNaira(d.value.summary.totalEarned); }
+        if (r.status === 'fulfilled') { ns.directRefs = r.value.stats.total; }
+        return ns;
+      });
+      return true;
+    } catch (e) { setLive(false); return false; }
+  }, []);
+
+  // Restore session on load + handle Paystack redirect callback.
+  const booted = useRef(false);
+  useEffect(() => {
+    if (booted.current) return; booted.current = true;
+    (async () => {
+      const restored = await loadProfile();
+      if (restored) { setView('app'); navRoot('dashboard'); }
+      const p = (window.API && window.API.params) || {};
+      if (p.pay === 'callback' && p.ref && window.API) {
+        try { const v = await window.API.verifyPayment(p.ref); if (v.status === 'paid') await loadProfile(); } catch (_) {}
+        try { history.replaceState({}, '', location.pathname); } catch (_) {}
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     const r = document.documentElement;
@@ -139,7 +183,7 @@ function Root() {
     nav, navRoot, back, param,
     openShare: () => setShare(true),
     fireConfetti,
-    logout: () => setView('landing'),
+    logout: () => { if (window.API) window.API.logout().catch(() => {}); setProfile(null); setLive(false); setView('landing'); },
     markNotifRead: () => setSt((s) => ({ ...s, notifRead: true })),
     claimMilestone: (m) => setSt((s) => ({ ...s, claimed: [...s.claimed, m.id], landSqm: s.landSqm + (m.sqm || 0),
       parcels: m.sqm ? [...s.parcels, { id: m.id, estate: 'Channels Gardens', city: 'Epe, Lagos', sqm: m.sqm, status: 'Pending survey', appr: 12 }] : s.parcels })),
@@ -153,7 +197,7 @@ function Root() {
     fund: (amt) => setSt((s) => ({ ...s, balance: s.balance + amt })),
   };
 
-  const ctx = { ...st, teamTotal: st.directRefs + st.level2, user: base, tweaks: t, screen, ...actions };
+  const ctx = { ...st, teamTotal: st.directRefs + st.level2, user: base, live, reload: loadProfile, tweaks: t, screen, ...actions };
 
   const meta = SCREENS[screen] || SCREENS.dashboard;
   const Screen = window[meta.c] || window.Dashboard;
@@ -169,7 +213,7 @@ function Root() {
 
         {view === 'auth' && (
           <Auth mode={authMode} onBack={() => setView('landing')}
-            onComplete={() => { setView('app'); navRoot('dashboard'); }} />
+            onComplete={() => { setView('app'); navRoot('dashboard'); loadProfile(); }} />
         )}
 
         {view === 'app' && (

@@ -9,7 +9,18 @@ function FundWallet() {
   const [method, setMethod] = useState(0);
   const [step, setStep] = useState(0);
   const methods = [['Flutterwave', Icons.bolt], ['Debit card', Icons.card], ['Bank transfer', Icons.bank], ['USSD', Icons.spark]];
-  const fund = () => { setStep(1); setTimeout(() => { app.fund(amount); setStep(2); }, 1800); };
+  const fund = async () => {
+    if (app.live && window.API) {
+      setStep(1);
+      try {
+        const r = await window.API.fundWallet(amount);
+        if (r.authorizationUrl) { window.location.href = r.authorizationUrl; return; } // redirect to Paystack
+        app.fund(amount); setStep(2);
+      } catch (e) { setStep(0); toast(e.message || 'Could not start funding'); }
+    } else {
+      setStep(1); setTimeout(() => { app.fund(amount); setStep(2); }, 1800);
+    }
+  };
 
   if (step === 2) return (
     <div className="reveal center" style={{ maxWidth: 460, margin: '0 auto', paddingTop: 30 }}>

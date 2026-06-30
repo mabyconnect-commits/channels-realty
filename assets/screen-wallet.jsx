@@ -96,9 +96,17 @@ function WithdrawSheet({ open, onClose }) {
     { name: 'Access Bank', acct: '•••• 1190', color: '#003e7e' },
   ];
 
-  const submit = () => {
-    setStep(1);
-    setTimeout(() => { app.doWithdraw(amount); setStep(2); }, 2000);
+  const submit = async () => {
+    if (app.live && window.API) {
+      setStep(1);
+      try {
+        await window.API.requestPayout({ amount, bankCode: '058', accountNumber: (banks[bank].acct.replace(/\D/g, '') + '00000000').slice(0, 10), accountName: app.user.name });
+        app.doWithdraw(amount); setStep(2); if (app.reload) app.reload();
+      } catch (e) { setStep(0); toast(e.message || 'Withdrawal failed'); }
+    } else {
+      setStep(1);
+      setTimeout(() => { app.doWithdraw(amount); setStep(2); }, 2000);
+    }
   };
 
   return (

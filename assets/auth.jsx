@@ -7,8 +7,35 @@ function Auth({ mode: initMode, onComplete, onBack }) {
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', ref: '', amount: 20000 });
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target ? e.target.value : e }));
   const isSignup = mode === 'signup';
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
 
   const sqm = Math.max(1, Math.round(form.amount / window.DATA.NGN_PER_SQM * 10) / 10);
+
+  // Real auth via the backend; falls back to demo mode if the API isn't deployed yet.
+  const submit = async () => {
+    setErr('');
+    if (!window.API) return onComplete(form);
+    setBusy(true);
+    try {
+      if (isSignup) {
+        const parts = (form.name || '').trim().split(/\s+/);
+        const firstName = parts[0] || 'Owner';
+        const lastName = parts.slice(1).join(' ') || firstName;
+        const ref = form.ref || (window.API.params && window.API.params.ref) || undefined;
+        await window.API.signup({ firstName, lastName, email: form.email, password: form.password, phone: form.phone || undefined, ref });
+      } else {
+        await window.API.login({ email: form.email, password: form.password });
+      }
+      setBusy(false);
+      onComplete(form);
+    } catch (e) {
+      setBusy(false);
+      const s = e && e.status;
+      if (s == null || s === 404 || s === 405 || s === 503) onComplete(form); // backend not connected → demo
+      else setErr(e.message || 'Something went wrong');
+    }
+  };
 
   return (
     <div style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1fr', background: 'var(--bg)' }} className="auth-wrap">
@@ -91,10 +118,11 @@ function Auth({ mode: initMode, onComplete, onBack }) {
                     ))}
                   </div>
                 </div>
-                <Btn block size="lg" onClick={() => onComplete(form)} iconR={<Icons.arrowRight />} style={{ marginTop: 4 }}>
-                  Pay ₦{Number(form.amount).toLocaleString()} & enter dashboard
+                {err && <div className="center" style={{ color: 'var(--red-500)', fontSize: 13, fontWeight: 600 }}>{err}</div>}
+                <Btn block size="lg" disabled={busy} onClick={submit} iconR={<Icons.arrowRight />} style={{ marginTop: 4 }}>
+                  {busy ? 'Creating account…' : `Pay ₦${Number(form.amount).toLocaleString()} & enter dashboard`}
                 </Btn>
-                <button className="muted center" onClick={() => onComplete(form)} style={{ fontSize: 13.5, fontWeight: 600 }}>Skip — explore dashboard first</button>
+                <button className="muted center" onClick={submit} style={{ fontSize: 13.5, fontWeight: 600 }}>Skip — explore dashboard first</button>
               </>
             )}
 
@@ -106,7 +134,8 @@ function Auth({ mode: initMode, onComplete, onBack }) {
                   <label className="row gap-2 muted" style={{ fontWeight: 600 }}><input type="checkbox" defaultChecked style={{ accentColor: 'var(--accent)' }} /> Remember me</label>
                   <a style={{ color: 'var(--accent)', fontWeight: 700 }}>Forgot password?</a>
                 </div>
-                <Btn block size="lg" onClick={() => onComplete(form)} iconR={<Icons.arrowRight />} style={{ marginTop: 6 }}>Log in</Btn>
+                {err && <div style={{ color: 'var(--red-500)', fontSize: 13, fontWeight: 600 }}>{err}</div>}
+                <Btn block size="lg" disabled={busy} onClick={submit} iconR={<Icons.arrowRight />} style={{ marginTop: 6 }}>{busy ? 'Signing in…' : 'Log in'}</Btn>
               </>
             )}
           </div>

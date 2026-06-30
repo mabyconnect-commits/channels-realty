@@ -127,6 +127,26 @@ function Drops() {
   const price = tiers[0].price;
   const total = sqm * price;
   const save = (50999 - price) * sqm;
+
+  const [liveEstateId, setLiveEstateId] = useState(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (app.live && window.API) window.API.estates().then((r) => { if (r.estates && r.estates[0]) setLiveEstateId(r.estates[0].id); }).catch(() => {});
+  }, [app.live]);
+  const buy = async (method) => {
+    if (!agree) return;
+    if (app.live && window.API && liveEstateId) {
+      setBusy(true);
+      try {
+        const r = await window.API.buyLand({ estateId: liveEstateId, sqm, method });
+        if (r.authorizationUrl) { window.location.href = r.authorizationUrl; return; } // redirect to Paystack
+        app.fireConfetti(); toast('🎉 You bought ' + sqm + ' sqm!'); if (app.reload) await app.reload(); app.navRoot('portfolio');
+      } catch (e) { toast(e.message || 'Could not start payment'); }
+      setBusy(false);
+    } else {
+      app.buyLand(sqm); app.fireConfetti(); toast('🎉 You bought ' + sqm + ' sqm!'); app.navRoot('portfolio');
+    }
+  };
   return (
     <div className="reveal" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <PageHead title="Land Drops" sub="Secure your land at the best price — earlier phases get bigger discounts." />
@@ -199,10 +219,14 @@ function Drops() {
           <div><div className="muted" style={{ fontSize: 12 }}>Total ({sqm} sqm)</div><div className="num" style={{ fontWeight: 800, fontSize: 22 }}>{D.fmtNaira(total)}</div></div>
           <div className="chip chip-green" style={{ alignSelf: 'center' }}>Save {D.fmtNaira(save)}</div>
         </div>
-        <Btn block size="lg" disabled={!agree} icon={<Icons.fire size={18} />}
-          onClick={() => { app.buyLand(sqm); app.fireConfetti(); toast(`🎉 You bought ${sqm} sqm!`); app.navRoot('portfolio'); }}>
-          Buy Real Land Now!
+        <Btn block size="lg" disabled={!agree || busy} icon={<Icons.fire size={18} />} onClick={() => buy('paystack')}>
+          {busy ? 'Starting payment…' : 'Buy Real Land Now!'}
         </Btn>
+        {app.live && (
+          <Btn block variant="outline" disabled={!agree || busy} style={{ marginTop: 8 }} icon={<Icons.wallet size={16} />} onClick={() => buy('wallet')}>
+            Pay from wallet
+          </Btn>
+        )}
         {!agree && <p className="center muted" style={{ fontSize: 11.5, marginTop: 8 }}>Accept the terms to continue.</p>}
       </Card>
     </div>
@@ -253,7 +277,16 @@ function GiftCards() {
             <div className="row between" style={{ marginTop: 16, fontSize: 14 }}><span className="muted">You pay</span><span className="num" style={{ fontWeight: 800 }}>{D.fmtNaira(pick.pay)}</span></div>
             <div className="row between" style={{ marginTop: 8, fontSize: 14 }}><span className="muted">Drop-day value</span><span className="num" style={{ fontWeight: 800, color: 'var(--green-600)' }}>{D.fmtNaira(Math.round(pick.face * pick.mult))}</span></div>
             <Btn block size="lg" style={{ marginTop: 18 }} icon={<Icons.wallet size={18} />}
-              onClick={() => { setPick(null); app.fireConfetti(); toast('🎁 Gift card purchased!'); }}>Buy gift card</Btn>
+              onClick={async () => {
+                if (app.live && window.API) {
+                  try {
+                    const r = await window.API.buyGiftcard(pick.id, 'paystack');
+                    if (r.authorizationUrl) { window.location.href = r.authorizationUrl; return; }
+                    app.fireConfetti(); toast('🎁 Gift card purchased!'); if (app.reload) await app.reload();
+                  } catch (e) { toast(e.message || 'Could not buy'); }
+                } else { app.fireConfetti(); toast('🎁 Gift card purchased!'); }
+                setPick(null);
+              }}>Buy gift card</Btn>
           </>
         )}
       </Sheet>
@@ -267,6 +300,20 @@ function Quest() {
   const toast = useToast();
   const [phase, setPhase] = useState('intro'); // intro | s1 | s2 | done
   const [q, setQ] = useState(0);
+  const [data, setData] = useState({ idType: 'National ID (NIN)' });
+  const submitKyc = async () => {
+    if (app.live && window.API) {
+      try {
+        await window.API.submitKyc({
+          fullName: data.name || (app.user && app.user.name) || 'Member',
+          dob: data.dob, address: data.street, city: data.city, state: data.state, country: 'Nigeria',
+          idType: data.idType, idNumber: data.idNumber,
+        });
+        if (app.reload) await app.reload();
+      } catch (e) { toast(e.message || 'Could not submit — saved as draft'); }
+    }
+    setPhase('done'); app.fireConfetti();
+  };
   const s1 = [
     { label: 'Full Legal Name', key: 'name', placeholder: 'e.g. Tunde Adeyemi', title: 'Your name' },
     { label: 'Date of Birth', key: 'dob', placeholder: 'YYYY-MM-DD', title: 'Date of birth' },
@@ -306,7 +353,7 @@ function Quest() {
           <div className="row gap-2" style={{ marginBottom: 6 }}><Icons.pin size={18} style={{ color: 'var(--green-600)' }} /><div style={{ fontWeight: 800, fontSize: 17 }}>{s1[q].title}</div></div>
           <div className="muted" style={{ fontSize: 12.5, marginBottom: 14 }}>Question {q + 1} of {s1.length}</div>
           <label className="stat-label">{s1[q].label}</label>
-          <input autoFocus placeholder={s1[q].placeholder} style={{ width: '100%', marginTop: 8, padding: '14px 16px', borderRadius: 'var(--r-sm)', border: '2px solid var(--green-600)', background: 'var(--surface)', fontWeight: 600, fontSize: 16, color: 'var(--on-surface)' }} />
+          <input autoFocus placeholder={s1[q].placeholder} value={data[s1[q].key] || ''} onChange={(e) => setData((d) => ({ ...d, [s1[q].key]: e.target.value }))} style={{ width: '100%', marginTop: 8, padding: '14px 16px', borderRadius: 'var(--r-sm)', border: '2px solid var(--green-600)', background: 'var(--surface)', fontWeight: 600, fontSize: 16, color: 'var(--on-surface)' }} />
           <div className="row between" style={{ marginTop: 18 }}>
             <button className="row gap-2 muted" style={{ fontWeight: 700, fontSize: 14 }} onClick={() => q > 0 ? setQ(q - 1) : setPhase('intro')}><Icons.arrowLeft size={16} /> Back</button>
             <Btn iconR={<Icons.arrowRight size={16} />} onClick={() => q < s1.length - 1 ? setQ(q + 1) : (setPhase('s2'), setQ(0))}>{q < s1.length - 1 ? 'Next' : 'Continue'}</Btn>
@@ -318,18 +365,18 @@ function Quest() {
         <Card>
           <div className="row gap-2" style={{ marginBottom: 14 }}><Icons.shield size={18} style={{ color: 'var(--green-600)' }} /><div style={{ fontWeight: 800, fontSize: 17 }}>ID details</div></div>
           <label className="stat-label">ID Type</label>
-          <select style={{ width: '100%', marginTop: 8, padding: '14px 16px', borderRadius: 'var(--r-sm)', border: '1px solid var(--hairline)', background: 'var(--surface)', fontWeight: 600, fontSize: 15, color: 'var(--on-surface)' }}>
+          <select value={data.idType} onChange={(e) => setData((d) => ({ ...d, idType: e.target.value }))} style={{ width: '100%', marginTop: 8, padding: '14px 16px', borderRadius: 'var(--r-sm)', border: '1px solid var(--hairline)', background: 'var(--surface)', fontWeight: 600, fontSize: 15, color: 'var(--on-surface)' }}>
             <option>National ID (NIN)</option><option>Driver’s License</option><option>International Passport</option><option>Voter’s Card</option>
           </select>
           <label className="stat-label" style={{ display: 'block', marginTop: 14 }}>ID Number</label>
-          <input placeholder="Enter your ID number" style={{ width: '100%', marginTop: 8, padding: '14px 16px', borderRadius: 'var(--r-sm)', border: '2px solid var(--green-600)', background: 'var(--surface)', fontWeight: 600, fontSize: 16, color: 'var(--on-surface)' }} />
+          <input placeholder="Enter your ID number" value={data.idNumber || ''} onChange={(e) => setData((d) => ({ ...d, idNumber: e.target.value }))} style={{ width: '100%', marginTop: 8, padding: '14px 16px', borderRadius: 'var(--r-sm)', border: '2px solid var(--green-600)', background: 'var(--surface)', fontWeight: 600, fontSize: 16, color: 'var(--on-surface)' }} />
           <div style={{ marginTop: 14, padding: 24, borderRadius: 'var(--r-md)', border: '2px dashed var(--hairline)', textAlign: 'center' }}>
             <Icons.arrowUp size={24} style={{ color: 'var(--faint)' }} />
             <div className="muted" style={{ fontSize: 13, marginTop: 6, fontWeight: 700 }}>Upload ID document + selfie</div>
           </div>
           <div className="row between" style={{ marginTop: 18 }}>
             <button className="row gap-2 muted" style={{ fontWeight: 700, fontSize: 14 }} onClick={() => setPhase('s1')}><Icons.arrowLeft size={16} /> Back</button>
-            <Btn icon={<Icons.check size={16} />} onClick={() => { setPhase('done'); app.fireConfetti(); }}>Submit</Btn>
+            <Btn icon={<Icons.check size={16} />} onClick={submitKyc}>Submit</Btn>
           </div>
         </Card>
       )}
