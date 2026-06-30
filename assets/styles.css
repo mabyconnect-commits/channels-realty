@@ -396,7 +396,7 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; margin: 0; line-height: 1.08; let
   .auth-wrap { grid-template-columns: 1.05fr 1fr !important; }
   .auth-brand { display: flex !important; }
 }
-@media (max-width: 860px) {
+@media (max-width: 1023px) {
   .hero-grid { grid-template-columns: 1fr !important; }
 }
 

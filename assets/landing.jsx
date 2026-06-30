@@ -142,8 +142,8 @@ function Landing({ onAuth }) {
       </section>
 
       {/* EARNINGS — commission ladder */}
-      <section id="earnings" style={{ maxWidth: 1180, margin: '0 auto', padding: '84px 22px' }}>
-        <div className="grid" style={{ gridTemplateColumns: 'minmax(0,.9fr) minmax(0,1.1fr)', gap: 50, alignItems: 'center' }} >
+      <section id="earnings" style={{ maxWidth: 1180, margin: '0 auto', padding: 'clamp(56px,9vw,84px) 22px' }}>
+        <div className="grid hero-grid" style={{ gridTemplateColumns: 'minmax(0,.9fr) minmax(0,1.1fr)', gap: 'clamp(28px,5vw,50px)', alignItems: 'center' }}>
           <div>
             <div className="eyebrow">Earn as you grow</div>
             <h2 style={{ fontSize: 'clamp(28px,4vw,42px)', fontWeight: 700, marginTop: 12 }}>
@@ -164,16 +164,16 @@ function Landing({ onAuth }) {
             </div>
           </div>
           <Card pad={false} style={{ overflow: 'hidden' }}>
-            <div style={{ padding: '18px 22px', borderBottom: '1px solid var(--hairline)', display: 'grid', gridTemplateColumns: '1.4fr 1fr .8fr .8fr', gap: 8, fontSize: 12, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+            <div style={{ padding: '16px clamp(14px,4vw,22px)', borderBottom: '1px solid var(--hairline)', display: 'grid', gridTemplateColumns: '1.5fr .9fr .8fr .8fr', gap: 6, fontSize: 11.5, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.04em' }}>
               <span>Rank</span><span>Team</span><span className="center">Lv1</span><span className="center">Lv2</span>
             </div>
             {D.tiers.map((t, i) => (
-              <div key={t.id} style={{ padding: '15px 22px', borderBottom: i < D.tiers.length - 1 ? '1px solid var(--line-2)' : 'none',
-                display: 'grid', gridTemplateColumns: '1.4fr 1fr .8fr .8fr', gap: 8, alignItems: 'center' }}>
-                <div className="row gap-2"><span className="dot" style={{ background: t.color }} /><span style={{ fontWeight: 700, fontSize: 14.5 }}>{t.name}</span></div>
-                <span className="num muted" style={{ fontSize: 14 }}>{t.team === 0 ? 'Start' : t.team.toLocaleString()}+</span>
-                <span className="num center" style={{ fontWeight: 700, color: 'var(--accent)' }}>{t.l1}%</span>
-                <span className="num center" style={{ fontWeight: 700, color: 'var(--teal-600)' }}>{t.l2}%</span>
+              <div key={t.id} style={{ padding: '14px clamp(14px,4vw,22px)', borderBottom: i < D.tiers.length - 1 ? '1px solid var(--line-2)' : 'none',
+                display: 'grid', gridTemplateColumns: '1.5fr .9fr .8fr .8fr', gap: 6, alignItems: 'center' }}>
+                <div className="row gap-2" style={{ minWidth: 0 }}><span className="dot" style={{ background: t.color, flex: '0 0 auto' }} /><span style={{ fontWeight: 700, fontSize: 'clamp(13px,3.6vw,14.5px)', lineHeight: 1.2 }}>{t.name}</span></div>
+                <span className="num muted" style={{ fontSize: 13.5 }}>{t.team === 0 ? 'Start' : t.team.toLocaleString()}+</span>
+                <span className="num center" style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--accent)' }}>{t.l1}%</span>
+                <span className="num center" style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--teal-600)' }}>{t.l2}%</span>
               </div>
             ))}
           </Card>
