@@ -91,16 +91,23 @@ function WithdrawSheet({ open, onClose }) {
   const [bank, setBank] = useState(0);
   useEffect(() => { if (open) { setStep(0); setAmount(Math.min(50000, app.balance)); } }, [open]);
 
-  const banks = [
+  const [liveAccts, setLiveAccts] = useState([]);
+  useEffect(() => {
+    if (open && app.live && window.API) window.API.accounts().then((r) => setLiveAccts((r.accounts || []).map((a) => ({
+      id: a.id, name: a.bankName, acct: '•••• ' + String(a.accountNumber).slice(-4), color: '#2b5666',
+    })))).catch(() => {});
+  }, [open, app.live]);
+  const demoBanks = [
     { name: 'GTBank', acct: '•••• 4821', color: '#e35205' },
     { name: 'Access Bank', acct: '•••• 1190', color: '#003e7e' },
   ];
+  const banks = app.live ? liveAccts : demoBanks;
 
   const submit = async () => {
     if (app.live && window.API) {
       setStep(1);
       try {
-        await window.API.requestPayout({ amount, bankCode: '058', accountNumber: (banks[bank].acct.replace(/\D/g, '') + '00000000').slice(0, 10), accountName: app.user.name });
+        await window.API.requestPayout({ amount, accountId: banks[bank] && banks[bank].id });
         app.doWithdraw(amount); setStep(2); if (app.reload) app.reload();
       } catch (e) { setStep(0); toast(e.message || 'Withdrawal failed'); }
     } else {
@@ -145,10 +152,15 @@ function WithdrawSheet({ open, onClose }) {
               </button>
             ))}
           </div>
-          <Btn block size="lg" style={{ marginTop: 18 }} disabled={amount < 1000} onClick={submit} icon={<Icons.bolt />}>
+          {app.live && banks.length === 0 && (
+            <button onClick={() => { onClose(); app.nav('payouts'); }} className="row gap-2 center" style={{ width: '100%', padding: 12, color: 'var(--accent)', fontWeight: 700, fontSize: 13.5, justifyContent: 'center' }}>
+              <Icons.plus size={15} /> Add a bank account to withdraw
+            </button>
+          )}
+          <Btn block size="lg" style={{ marginTop: 18 }} disabled={amount < 1000 || (app.live && banks.length === 0)} onClick={submit} icon={<Icons.bolt />}>
             Withdraw {D.fmtNaira(amount)}
           </Btn>
-          <p className="center muted" style={{ fontSize: 12, marginTop: 10 }}>Powered by Flutterwave · arrives in minutes</p>
+          <p className="center muted" style={{ fontSize: 12, marginTop: 10 }}>{app.live ? 'Powered by Paystack · arrives in minutes' : 'Powered by Flutterwave · arrives in minutes'}</p>
         </div>
       )}
 

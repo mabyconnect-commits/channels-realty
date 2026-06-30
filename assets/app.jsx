@@ -65,6 +65,7 @@ const SCREENS = {
   listestate:    { c: 'ListEstate',        t: 'List an Estate' },
   membership:    { c: 'Membership',        t: 'Membership' },
   orders:        { c: 'Orders',            t: 'Orders' },
+  admin:         { c: 'AdminKyc',          t: 'KYC Review' },
 };
 
 const BOTTOM = [
@@ -81,7 +82,7 @@ const SIDE_GROUPS = [
   { label: 'Invest', items: ['market', 'p2p', 'trade', 'jv', 'insider', 'landlords', 'listestate'] },
   { label: 'Affiliate', items: ['affiliate', 'pages', 'promo', 'leaderboard', 'analytics', 'tree'] },
   { label: 'Grow', items: ['tasks', 'badges', 'academy', 'events'] },
-  { label: 'Account', items: ['profile', 'quest', 'orders', 'docs', 'notifications', 'support', 'settings'] },
+  { label: 'Account', items: ['profile', 'quest', 'orders', 'docs', 'notifications', 'support', 'settings', 'admin'] },
 ];
 const SIDE_ICON = {
   dashboard: Icons.home, milestones: Icons.land, team: Icons.users, wallet: Icons.wallet,
@@ -91,7 +92,7 @@ const SIDE_ICON = {
   launch: Icons.fire, drops: Icons.land, giftcards: Icons.gift, quest: Icons.shield, membership: Icons.trophy,
   affiliate: Icons.share, pages: Icons.grid, promo: Icons.spark, portfolio: Icons.eye, p2p: Icons.grid,
   trade: Icons.bolt, jv: Icons.users, insider: Icons.trending, landlords: Icons.pin, listestate: Icons.land,
-  orders: Icons.doc, tree: Icons.users,
+  orders: Icons.doc, tree: Icons.users, admin: Icons.shield,
 };
 
 function Root() {
@@ -127,7 +128,7 @@ function Root() {
     email: u.email, phone: u.phone || window.DATA.user.phone,
     refCode: u.refCode, refLink: 'channels.realty/r/' + u.refCode,
     kyc: u.kycStatus === 'APPROVED', kycStatus: u.kycStatus,
-    membership: u.membership || 'STARTER', isAffiliate: true,
+    membership: u.membership || 'STARTER', role: u.role || 'USER', isAffiliate: true,
   });
   const loadProfile = useCallback(async () => {
     if (!window.API) return false;
@@ -225,7 +226,7 @@ function Root() {
                 {SIDE_GROUPS.map((g) => (
                   <div key={g.label} style={{ marginBottom: 6 }}>
                     <div className="stat-label" style={{ fontSize: 10.5, padding: '12px 13px 6px', color: 'var(--faint)' }}>{g.label}</div>
-                    {g.items.map((id) => (
+                    {g.items.filter((id) => id !== 'admin' || base.role === 'ADMIN').map((id) => (
                       <a key={id} className={'side-link ' + (screen === id ? 'active' : '')} onClick={() => navRoot(id)}>
                         {React.createElement(SIDE_ICON[id] || Icons.grid)}{SCREENS[id].t.replace(' & Milestones', '').replace(' & Webinars', '').replace(' Analytics', '')}
                         {id === 'milestones' && <span className="side-badge">{st.landSqm}</span>}

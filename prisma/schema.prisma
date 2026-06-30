@@ -14,9 +14,9 @@ datasource db {
 // ---------- Enums ----------
 enum Role { USER ADMIN }
 enum KycStatus { NONE PENDING APPROVED REJECTED }
-enum TxType { FUNDING COMMISSION BONUS PURCHASE PAYOUT REFUND GIFTCARD MEMBERSHIP ADJUSTMENT }
+enum TxType { FUNDING COMMISSION BONUS PURCHASE PAYOUT REFUND GIFTCARD MEMBERSHIP SALE ADJUSTMENT }
 enum TxStatus { PENDING SUCCESS FAILED }
-enum OrderKind { LAND GIFTCARD MEMBERSHIP WALLET_FUNDING }
+enum OrderKind { LAND GIFTCARD MEMBERSHIP WALLET_FUNDING P2P }
 enum OrderStatus { PENDING PAID FAILED CANCELLED }
 enum GiftCardStatus { ACTIVE REDEEMED EXPIRED }
 enum CommissionStatus { PENDING AVAILABLE PAID }
@@ -53,10 +53,26 @@ model User {
   listings     P2PListing[]
   jvInvest     JVInvestment[]
   pageStats    PageStat[]
+  bankAccounts BankAccount[]
   commissions  Commission[]  @relation("Earner")
   sourced      Commission[]  @relation("Source")
 
   @@index([referredById])
+}
+
+model BankAccount {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bankCode      String
+  bankName      String
+  accountNumber String
+  accountName   String
+  recipientCode String?  // Paystack transfer recipient
+  primary       Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Wallet {
@@ -227,8 +243,10 @@ model Payout {
   user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount        BigInt
   bankCode      String?
+  bankName      String?
   accountNumber String?
   accountName   String?
+  recipientCode String?
   status        PayoutStatus @default(REQUESTED)
   providerRef   String?
   createdAt     DateTime     @default(now())

@@ -57,6 +57,7 @@ function MoreHub() {
       ['security', 'Security', Icons.lock, 'var(--orange-600)'],
       ['settings', 'Settings', Icons.spark, 'var(--muted)'],
       ['support', 'Help & support', Icons.info, 'var(--teal-600)'],
+      ...(app.user && app.user.role === 'ADMIN' ? [['admin', 'KYC review', Icons.shield, 'var(--teal-700)']] : []),
     ]},
   ];
   return (

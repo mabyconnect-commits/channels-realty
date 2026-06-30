@@ -74,6 +74,26 @@ function P2PMarket() {
       seller: l.seller.firstName, avatar: 'assets/agent-1.jpg', verified: l.seller.kycStatus === 'APPROVED', disc: 0,
     })))).catch(() => {});
   }, [app.live]);
+  const buyListing = async (l) => {
+    if (app.live && window.API) {
+      try {
+        const r = await window.API.p2pBuy(l.id, 'paystack');
+        if (r.authorizationUrl) { window.location.href = r.authorizationUrl; return; }
+        app.fireConfetti(); toast('Bought ' + l.sqm + ' sqm!'); if (app.reload) await app.reload();
+      } catch (e) { toast(e.message || 'Could not buy'); }
+    } else { app.fireConfetti(); toast('Offer sent to ' + l.seller); }
+  };
+  const [holdings, setHoldings] = useState([]);
+  const [sellForm, setSellForm] = useState({ holdingId: '', ask: '' });
+  useEffect(() => { if (app.live && window.API) window.API.portfolio().then((r) => setHoldings(r.holdings || [])).catch(() => {}); }, [app.live]);
+  const listForSale = async () => {
+    if (app.live && window.API) {
+      const h = holdings.find((x) => x.id === sellForm.holdingId) || holdings[0];
+      if (!h) { toast('You have no land to list yet'); return; }
+      try { await window.API.listP2P({ holdingId: h.id, sqm: h.sqm, ask: parseInt(sellForm.ask, 10) || (h.value || 100000) }); toast('Listed for sale!'); setTab('buy'); if (app.reload) await app.reload(); }
+      catch (e) { toast(e.message || 'Could not list'); }
+    } else { toast('Listing submitted for review'); }
+  };
   const [tab, setTab] = useState('buy');
   const tabs = [['instant', 'Instant', Icons.bolt], ['buy', 'Buy', Icons.wallet], ['sell', 'Sell', Icons.land], ['mine', 'Mine', Icons.grid]];
   return (
@@ -117,7 +137,7 @@ function P2PMarket() {
               </div>
               <div className="row between" style={{ marginTop: 14 }}>
                 <div><div className="muted" style={{ fontSize: 11.5 }}>Asking</div><div className="num" style={{ fontWeight: 800, fontSize: 18 }}>{D.fmtNaira(l.ask)}</div></div>
-                <Btn size="sm" icon={<Icons.wallet size={15} />} onClick={() => { app.fireConfetti(); toast('Offer sent to ' + l.seller); }}>Buy now</Btn>
+                <Btn size="sm" icon={<Icons.wallet size={15} />} onClick={() => buyListing(l)}>Buy now</Btn>
               </div>
             </Card>
           ))}
@@ -129,12 +149,12 @@ function P2PMarket() {
           <h3 style={{ fontSize: 16, fontWeight: 800 }}>List your land for resale</h3>
           <p className="muted" style={{ fontSize: 13, marginTop: 4 }}>Set your price and sell to other investors. 0% selling fee on Pro.</p>
           <label className="stat-label" style={{ display: 'block', marginTop: 14 }}>Estate</label>
-          <select style={{ width: '100%', marginTop: 8, padding: '13px 15px', borderRadius: 'var(--r-sm)', border: '1px solid var(--hairline)', background: 'var(--surface)', fontWeight: 600, fontSize: 14, color: 'var(--on-surface)' }}>
-            {app.parcels.map((p) => <option key={p.id}>{p.estate} — {p.sqm} sqm</option>)}
+          <select value={sellForm.holdingId} onChange={(e) => setSellForm((f) => ({ ...f, holdingId: e.target.value }))} style={{ width: '100%', marginTop: 8, padding: '13px 15px', borderRadius: 'var(--r-sm)', border: '1px solid var(--hairline)', background: 'var(--surface)', fontWeight: 600, fontSize: 14, color: 'var(--on-surface)' }}>
+            {(app.live ? holdings : app.parcels).map((p) => <option key={p.id} value={p.id}>{p.estate} — {p.sqm} sqm</option>)}
           </select>
           <label className="stat-label" style={{ display: 'block', marginTop: 14 }}>Asking price (₦)</label>
-          <input type="number" placeholder="e.g. 850000" style={{ width: '100%', marginTop: 8, padding: '13px 15px', borderRadius: 'var(--r-sm)', border: '1px solid var(--hairline)', background: 'var(--surface)', fontWeight: 700, fontSize: 15, color: 'var(--on-surface)' }} />
-          <Btn block size="lg" style={{ marginTop: 16 }} icon={<Icons.land size={17} />} onClick={() => toast('Listing submitted for review')}>List for sale</Btn>
+          <input type="number" placeholder="e.g. 850000" value={sellForm.ask} onChange={(e) => setSellForm((f) => ({ ...f, ask: e.target.value }))} style={{ width: '100%', marginTop: 8, padding: '13px 15px', borderRadius: 'var(--r-sm)', border: '1px solid var(--hairline)', background: 'var(--surface)', fontWeight: 700, fontSize: 15, color: 'var(--on-surface)' }} />
+          <Btn block size="lg" style={{ marginTop: 16 }} icon={<Icons.land size={17} />} onClick={listForSale}>List for sale</Btn>
         </Card>
       )}
 
@@ -408,4 +428,53 @@ function Orders() {
   );
 }
 
-Object.assign(window, { Portfolio, P2PMarket, InstantTrade, JointVentures, Landlords, InsiderInvestor, ListEstate, Membership, Orders });
+/* ---- Admin: KYC review ---- */
+function AdminKyc() {
+  const app = window.useApp();
+  const toast = useToast();
+  const [pending, setPending] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (app.live && window.API) {
+      setLoading(true);
+      window.API.adminKycList().then((r) => { setPending(r.pending || []); setLoading(false); }).catch(() => setLoading(false));
+    } else { setLoading(false); }
+  }, [app.live]);
+  const decide = async (userId, decision) => {
+    try {
+      await window.API.adminKycDecide(userId, decision);
+      toast(decision === 'APPROVED' ? 'Approved ✓' : 'Rejected');
+      setPending((p) => p.filter((x) => x.userId !== userId));
+    } catch (e) { toast(e.message || 'Action failed'); }
+  };
+  const Row = ({ k, v }) => v ? <div className="row between" style={{ fontSize: 13, padding: '4px 0' }}><span className="muted">{k}</span><span style={{ fontWeight: 700 }}>{v}</span></div> : null;
+  return (
+    <div className="reveal" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <PageHead title="KYC Review" sub="Approve or reject verifications. Approving pays the referrer’s signup bonus." />
+      {!app.live && <Card style={{ textAlign: 'center', padding: 32 }}><Icons.shield size={28} style={{ color: 'var(--faint)' }} /><p className="muted" style={{ fontSize: 13.5, marginTop: 10 }}>Connect the backend and sign in as an admin to review live KYC submissions.</p></Card>}
+      {app.live && loading && <Card style={{ textAlign: 'center', padding: 32 }}><p className="muted">Loading…</p></Card>}
+      {app.live && !loading && pending.length === 0 && <Card style={{ textAlign: 'center', padding: 32 }}><Icons.checkCircle size={28} style={{ color: 'var(--green-600)' }} /><p className="muted" style={{ fontSize: 13.5, marginTop: 10 }}>No pending submissions 🎉</p></Card>}
+      {pending.map((s) => (
+        <Card key={s.id}>
+          <div className="row between">
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 15 }}>{s.fullName || (s.user && (s.user.firstName + ' ' + s.user.lastName))}</div>
+              <div className="muted" style={{ fontSize: 12.5 }}>{s.user && s.user.email}</div>
+            </div>
+            <span className="chip" style={{ background: 'var(--surface-sunk)', color: 'var(--orange-500)' }}>Pending</span>
+          </div>
+          <div style={{ marginTop: 10, borderTop: '1px solid var(--line-2)', paddingTop: 8 }}>
+            <Row k="ID type" v={s.idType} /><Row k="ID number" v={s.idNumber} />
+            <Row k="Address" v={s.address} /><Row k="City" v={s.city} /><Row k="State" v={s.state} /><Row k="DOB" v={s.dob} />
+          </div>
+          <div className="row gap-2" style={{ marginTop: 12 }}>
+            <Btn size="sm" icon={<Icons.check size={15} />} onClick={() => decide(s.userId, 'APPROVED')}>Approve</Btn>
+            <Btn size="sm" variant="outline" onClick={() => decide(s.userId, 'REJECTED')}>Reject</Btn>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+Object.assign(window, { Portfolio, P2PMarket, InstantTrade, JointVentures, Landlords, InsiderInvestor, ListEstate, Membership, Orders, AdminKyc });

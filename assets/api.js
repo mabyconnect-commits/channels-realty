@@ -61,11 +61,21 @@
     investVenture: (ventureId, amount) => req('/ventures', { method: 'POST', body: { ventureId, amount } }),
     p2p: () => req('/p2p'),
     listP2P: (b) => req('/p2p', { method: 'POST', body: b }),
+    p2pBuy: (listingId, method) => req('/p2p/buy', { method: 'POST', body: { listingId, method } }),
 
     // kyc & payouts
     submitKyc: (b) => req('/kyc/submit', { method: 'POST', body: b }),
     payouts: () => req('/payouts'),
     requestPayout: (b) => req('/payouts', { method: 'POST', body: b }),
+
+    // banks & payout accounts
+    banks: () => req('/banks'),
+    accounts: () => req('/accounts'),
+    addAccount: (b) => req('/accounts', { method: 'POST', body: b }),
+
+    // admin
+    adminKycList: () => req('/admin/kyc'),
+    adminKycDecide: (userId, decision) => req('/admin/kyc', { method: 'POST', body: { userId, decision } }),
   };
 
   // read ?ref= / ?pay= from the URL for signup attribution + payment callback

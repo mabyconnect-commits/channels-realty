@@ -96,9 +96,12 @@ All responses are JSON `{ ok: true, ... }` or `{ ok: false, error }`. Auth uses 
 | GET/POST | `/api/membership` | ✓ | Plans + upgrade |
 | GET/POST | `/api/ventures` | ✓ | Joint ventures + invest |
 | GET/POST | `/api/p2p` | ✓ | P2P listings + create |
+| POST | `/api/p2p/buy` | ✓ | Buy a listing (wallet or Paystack) → settles ownership |
 | POST | `/api/kyc/submit` | ✓ | Submit KYC (→ PENDING) |
 | GET/POST | `/api/admin/kyc` | ADMIN | Review/approve KYC (pays referrer bonus) |
-| GET/POST | `/api/payouts` | ✓ | List / request payout |
+| GET/POST | `/api/payouts` | ✓ | List / request payout (real Paystack transfer) |
+| GET | `/api/banks` | ✓ | Nigerian bank list (for payout setup) |
+| GET/POST | `/api/accounts` | ✓ | List / add payout bank account (name resolved + recipient created) |
 
 ## Business rules encoded
 
@@ -109,6 +112,12 @@ All responses are JSON `{ ok: true, ... }` or `{ ok: false, error }`. Auth uses 
 - **Fulfillment is idempotent:** both the webhook and the verify endpoint can confirm a
   payment; the order is only fulfilled once.
 - **Wallet payments** debit `bonusCredit` first, then `balance`.
+- **Payouts** debit the wallet, create a Paystack transfer to the saved recipient, and are
+  finalized by the `transfer.success`/`transfer.failed` webhook (a failed transfer refunds
+  the wallet automatically). With no Paystack key the payout is recorded as `REQUESTED`
+  for manual processing.
+- **P2P settlement:** buying a listing transfers the sqm from the seller's holdings to the
+  buyer and credits the seller's wallet (0% fee), atomically and idempotently.
 
 ## Wiring the frontend (next slice)
 
