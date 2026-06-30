@@ -168,7 +168,7 @@ function WithdrawSheet({ open, onClose }) {
           <Btn block size="lg" style={{ marginTop: 18 }} disabled={amount < 1000 || (app.live && banks.length === 0)} onClick={submit} icon={<Icons.bolt />}>
             Withdraw {D.fmtNaira(amount)}
           </Btn>
-          <p className="center muted" style={{ fontSize: 12, marginTop: 10 }}>{app.live ? 'Powered by Paystack · arrives in minutes' : 'Powered by Flutterwave · arrives in minutes'}</p>
+          <p className="center muted" style={{ fontSize: 12, marginTop: 10 }}>{app.live ? 'Powered by Paystack · arrives in minutes' : 'Powered by Paystack · arrives in minutes'}</p>
         </div>
       )}
 
@@ -176,7 +176,7 @@ function WithdrawSheet({ open, onClose }) {
         <div className="center" style={{ padding: '24px 8px' }}>
           <div style={{ width: 60, height: 60, margin: '0 auto 20px', borderRadius: '50%', border: '4px solid var(--surface-sunk)', borderTopColor: 'var(--accent)', animation: 'spin .8s linear infinite' }} />
           <h3 style={{ fontSize: 20, fontWeight: 700 }}>Processing withdrawal…</h3>
-          <p className="muted" style={{ fontSize: 14, marginTop: 6 }}>Securely transferring via Flutterwave</p>
+          <p className="muted" style={{ fontSize: 14, marginTop: 6 }}>Securely transferring via Paystack</p>
         </div>
       )}
 

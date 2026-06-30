@@ -166,7 +166,7 @@ function Checkout() {
   const p = app.param || { sqm: 100, price: 1200000, estate: 'Channels Gardens' };
   const [method, setMethod] = useState(0);
   const [step, setStep] = useState(0); // 0 review, 1 processing, 2 done
-  const methods = [['Flutterwave', Icons.bolt], ['Debit card', Icons.card], ['Bank transfer', Icons.bank], ['Wallet balance', Icons.wallet]];
+  const methods = [['Paystack', Icons.bolt], ['Debit card', Icons.card], ['Bank transfer', Icons.bank], ['Wallet balance', Icons.wallet]];
   const pay = async () => {
     if (app.live && window.API && p.slug) {
       setStep(1);
@@ -220,7 +220,7 @@ function Checkout() {
       <Btn block size="lg" disabled={step === 1} onClick={pay} icon={step === 1 ? null : <Icons.lock size={17} />}>
         {step === 1 ? 'Processing…' : `Pay ${D.fmtNaira(p.price + 15000)}`}
       </Btn>
-      <p className="center muted" style={{ fontSize: 12 }}><Icons.shield size={12} style={{ verticalAlign: -2 }} /> Secured by Flutterwave · 256-bit encryption</p>
+      <p className="center muted" style={{ fontSize: 12 }}><Icons.shield size={12} style={{ verticalAlign: -2 }} /> Secured by Paystack · 256-bit encryption</p>
     </div>
   );
 }

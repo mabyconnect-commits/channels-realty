@@ -82,7 +82,7 @@ function Landing({ onAuth }) {
       {/* TRUST STRIP */}
       <div style={{ borderTop: '1px solid var(--hairline)', borderBottom: '1px solid var(--hairline)', background: 'var(--surface)' }}>
         <div style={{ maxWidth: 1180, margin: '0 auto', padding: '20px 22px', display: 'flex', gap: 34, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-          {[[<Icons.shield />, 'Verified C of O & survey'], [<Icons.bolt />, 'Instant 20% commission'], [<Icons.card />, 'Pay with Flutterwave'], [<Icons.land />, 'Real allocation in Epe, Lagos']].map(([ic, t], i) => (
+          {[[<Icons.shield />, 'Verified C of O & survey'], [<Icons.bolt />, 'Instant 20% commission'], [<Icons.card />, 'Pay with Paystack'], [<Icons.land />, 'Real allocation in Epe, Lagos']].map(([ic, t], i) => (
             <div key={i} className="row gap-2" style={{ color: 'var(--ink-2)', fontWeight: 600, fontSize: 14 }}>
               <span style={{ color: 'var(--accent)', display: 'flex' }}>{ic}</span>{t}
             </div>

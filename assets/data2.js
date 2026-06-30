@@ -63,7 +63,7 @@
 
   const news = [
     { id: 'a1', tag: 'Launch', date: 'May 28, 2026', title: 'Channels Haven Phase 2 is now open', body: 'New plots released next to the Dangote corridor — early-bird pricing for the first 200 owners.' },
-    { id: 'a2', tag: 'Update', date: 'May 20, 2026', title: 'Instant withdrawals now under 2 minutes', body: 'We upgraded our Flutterwave integration. Commissions hit your bank faster than ever.' },
+    { id: 'a2', tag: 'Update', date: 'May 20, 2026', title: 'Instant withdrawals now under 2 minutes', body: 'We upgraded our Paystack integration. Commissions hit your bank faster than ever.' },
     { id: 'a3', tag: 'Community', date: 'May 12, 2026', title: '₦1.2B paid to co-owners this quarter', body: 'Our community crossed a major milestone in commissions and land allocations.' },
     { id: 'a4', tag: 'Tip', date: 'May 4, 2026', title: 'How to hit 100 referrals in 60 days', body: 'Three of our Channerators share the exact scripts they use to grow their channel.' },
   ];
@@ -73,7 +73,7 @@
     { q: 'When do I get my commission?', a: 'Instantly. The moment someone buys through your link, your 20% (₦4,000 on ₦20,000) lands in your withdrawable balance.' },
     { q: 'How do milestones reward free land?', a: 'Every referral counts toward sqm milestones. Hit 100 referrals and claim 150 sqm — completely free, on top of your commissions.' },
     { q: 'Is my land documented?', a: 'Yes. Every estate carries verified title (C of O or Gazette). You receive an allocation letter, contract of sale and deed.' },
-    { q: 'How do I withdraw?', a: 'Open your Wallet, tap Withdraw, choose a bank account and confirm. Payouts are processed via Flutterwave in minutes.' },
+    { q: 'How do I withdraw?', a: 'Open your Wallet, tap Withdraw, choose a bank account and confirm. Payouts are processed via Paystack in minutes.' },
     { q: 'What are points for?', a: 'Complete tasks to earn points. 1,000 points = 1 sqm of land, or redeem for cash, airtime and swag in the Rewards Store.' },
   ];
 

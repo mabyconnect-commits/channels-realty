@@ -8,7 +8,7 @@ function FundWallet() {
   const [amount, setAmount] = useState(50000);
   const [method, setMethod] = useState(0);
   const [step, setStep] = useState(0);
-  const methods = [['Flutterwave', Icons.bolt], ['Debit card', Icons.card], ['Bank transfer', Icons.bank], ['USSD', Icons.spark]];
+  const methods = [['Paystack', Icons.bolt], ['Debit card', Icons.card], ['Bank transfer', Icons.bank], ['USSD', Icons.spark]];
   const fund = async () => {
     if (app.live && window.API) {
       setStep(1);

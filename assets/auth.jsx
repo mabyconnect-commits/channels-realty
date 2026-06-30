@@ -33,8 +33,20 @@ function Auth({ mode: initMode, onComplete, onBack }) {
       setBusy(false);
       const s = e && e.status;
       if (s == null || s === 404 || s === 405 || s === 503) onComplete(form); // backend not connected → demo
-      else setErr(e.message || 'Something went wrong');
+      else {
+        setErr(e.message || 'Something went wrong');
+        // send the user back to the details step if the failing field lives there
+        if (isSignup && /email|password|name/i.test(e.message || '')) setStep(0);
+      }
     }
+  };
+
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const continueStep = () => {
+    if (!form.name.trim()) return setErr('Please enter your full name');
+    if (!emailRe.test(form.email.trim())) return setErr('Please enter a valid email address');
+    if (form.password.length < 6) return setErr('Password must be at least 6 characters');
+    setErr(''); setStep(1);
   };
 
   return (
@@ -94,7 +106,8 @@ function Auth({ mode: initMode, onComplete, onBack }) {
                 <Field label="Phone" value={form.phone} onChange={set('phone')} placeholder="0814 152 1450" />
                 <Field label="Password" value={form.password} onChange={set('password')} placeholder="••••••••" type="password" />
                 <Field label="Referral code (optional)" value={form.ref} onChange={set('ref')} placeholder="e.g. TUNDE2024" />
-                <Btn block size="lg" onClick={() => setStep(1)} iconR={<Icons.arrowRight />} style={{ marginTop: 6 }}>Continue</Btn>
+                {err && <div style={{ color: 'var(--red-500)', fontSize: 13, fontWeight: 600 }}>{err}</div>}
+                <Btn block size="lg" onClick={continueStep} iconR={<Icons.arrowRight />} style={{ marginTop: 6 }}>Continue</Btn>
               </>
             )}
 
@@ -109,9 +122,9 @@ function Auth({ mode: initMode, onComplete, onBack }) {
                   <div className="row between muted" style={{ fontSize: 12, fontWeight: 600 }}><span>₦20k</span><span>₦500k</span></div>
                 </div>
                 <div className="card card-pad" style={{ background: 'var(--surface)' }}>
-                  <div className="stat-label" style={{ marginBottom: 12 }}>Pay with</div>
+                  <div className="stat-label" style={{ marginBottom: 12 }}>Payment options (when you buy)</div>
                   <div className="grid cols-2" style={{ gap: 10 }}>
-                    {[['Flutterwave', <Icons.bolt />], ['Card', <Icons.card />], ['Bank transfer', <Icons.bank />], ['USSD', <Icons.spark />]].map(([t, ic], i) => (
+                    {[['Paystack', <Icons.bolt />], ['Card', <Icons.card />], ['Bank transfer', <Icons.bank />], ['USSD', <Icons.spark />]].map(([t, ic], i) => (
                       <div key={t} style={{ border: '1.5px solid', borderColor: i === 0 ? 'var(--accent)' : 'var(--hairline)', borderRadius: 12, padding: '12px', display: 'flex', alignItems: 'center', gap: 9, fontWeight: 700, fontSize: 13.5, color: i === 0 ? 'var(--accent)' : 'var(--ink-2)', background: i === 0 ? 'var(--orange-50)' : 'transparent' }}>
                         <span style={{ display: 'flex' }}>{ic}</span>{t}
                       </div>
@@ -120,9 +133,9 @@ function Auth({ mode: initMode, onComplete, onBack }) {
                 </div>
                 {err && <div className="center" style={{ color: 'var(--red-500)', fontSize: 13, fontWeight: 600 }}>{err}</div>}
                 <Btn block size="lg" disabled={busy} onClick={submit} iconR={<Icons.arrowRight />} style={{ marginTop: 4 }}>
-                  {busy ? 'Creating account…' : `Pay ₦${Number(form.amount).toLocaleString()} & enter dashboard`}
+                  {busy ? 'Creating account…' : 'Create account & continue'}
                 </Btn>
-                <button className="muted center" onClick={submit} style={{ fontSize: 13.5, fontWeight: 600 }}>Skip — explore dashboard first</button>
+                <p className="muted center" style={{ fontSize: 12.5 }}>Signup is free — fund your wallet or buy land once you’re in.</p>
               </>
             )}
 

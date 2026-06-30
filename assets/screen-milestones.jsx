@@ -137,7 +137,7 @@ function ClaimSheet({ claiming, onClose }) {
               {isBuy ? <Icons.land size={36} /> : claiming.type === 'kit' ? <Icons.gift size={36} /> : <Icons.land size={36} />}
             </div>
             <h3 style={{ fontSize: 22, fontWeight: 800 }}>{isBuy ? 'Buy more land' : claiming.title}</h3>
-            <p className="muted" style={{ fontSize: 14.5, marginTop: 6 }}>{isBuy ? 'Own from ₦20,000. Pay securely with Flutterwave.' : 'Confirm to add this reward to your account.'}</p>
+            <p className="muted" style={{ fontSize: 14.5, marginTop: 6 }}>{isBuy ? 'Own from ₦20,000. Pay securely with Paystack.' : 'Confirm to add this reward to your account.'}</p>
           </div>
 
           {isBuy && (
