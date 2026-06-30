@@ -14,18 +14,88 @@ datasource db {
 }
 
 // ---------- Enums ----------
-enum Role { USER ADMIN }
-enum KycStatus { NONE PENDING APPROVED REJECTED }
-enum TxType { FUNDING COMMISSION BONUS PURCHASE PAYOUT REFUND GIFTCARD MEMBERSHIP SALE ADJUSTMENT }
-enum TxStatus { PENDING SUCCESS FAILED }
-enum OrderKind { LAND GIFTCARD MEMBERSHIP WALLET_FUNDING P2P }
-enum OrderStatus { PENDING PAID FAILED CANCELLED }
-enum GiftCardStatus { ACTIVE REDEEMED EXPIRED }
-enum CommissionStatus { PENDING AVAILABLE PAID }
-enum MembershipTier { STARTER PRO ELITE }
-enum PayoutStatus { REQUESTED PROCESSING PAID FAILED }
-enum ListingStatus { ACTIVE SOLD CANCELLED }
-enum JVStatus { OPEN FUNDED CLOSED }
+enum Role {
+  USER
+  ADMIN
+}
+
+enum KycStatus {
+  NONE
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TxType {
+  FUNDING
+  COMMISSION
+  BONUS
+  PURCHASE
+  PAYOUT
+  REFUND
+  GIFTCARD
+  MEMBERSHIP
+  SALE
+  ADJUSTMENT
+}
+
+enum TxStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum OrderKind {
+  LAND
+  GIFTCARD
+  MEMBERSHIP
+  WALLET_FUNDING
+  P2P
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+}
+
+enum GiftCardStatus {
+  ACTIVE
+  REDEEMED
+  EXPIRED
+}
+
+enum CommissionStatus {
+  PENDING
+  AVAILABLE
+  PAID
+}
+
+enum MembershipTier {
+  STARTER
+  PRO
+  ELITE
+}
+
+enum PayoutStatus {
+  REQUESTED
+  PROCESSING
+  PAID
+  FAILED
+}
+
+enum ListingStatus {
+  ACTIVE
+  SOLD
+  CANCELLED
+}
+
+enum JVStatus {
+  OPEN
+  FUNDED
+  CLOSED
+}
 
 // ---------- Core ----------
 model User {

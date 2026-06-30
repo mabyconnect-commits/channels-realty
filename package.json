@@ -10,6 +10,7 @@
   "scripts": {
     "check:jsx": "node scripts/check-jsx.js",
     "check:api": "node scripts/check-api.js",
+    "check:schema": "node scripts/check-schema.js",
     "dev": "npx --yes serve -l 3000 .",
     "start": "npx --yes serve -l 3000 .",
     "postinstall": "prisma generate",
