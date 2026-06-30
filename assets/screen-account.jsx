@@ -4,7 +4,20 @@
 function Profile() {
   const app = window.useApp();
   const D = window.DATA;
+  const toast = useToast();
   const tier = D.currentTier(app.teamTotal);
+  const [editing, setEditing] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [pf, setPf] = useState({ firstName: app.user.first || '', lastName: (app.user.name || '').split(' ').slice(1).join(' '), phone: app.user.phone || '' });
+  const save = async () => {
+    if (!pf.firstName.trim()) return toast('First name is required');
+    if (app.live && window.API) {
+      setBusy(true);
+      try { await window.API.updateProfile({ firstName: pf.firstName, lastName: pf.lastName || pf.firstName, phone: pf.phone }); toast('Profile updated ✓'); if (app.reload) await app.reload(); setEditing(false); }
+      catch (e) { toast(e.message || 'Could not update profile'); }
+      setBusy(false);
+    } else { toast('Profile updated'); setEditing(false); }
+  };
   const stats = [
     ['Team', app.teamTotal, Icons.users], ['Land', app.landSqm + ' sqm', Icons.land],
     ['Lifetime', D.fmtNaira(app.lifetime), Icons.wallet], ['Joined', app.user.joined, Icons.clock],
@@ -16,7 +29,7 @@ function Profile() {
         <div style={{ padding: '0 22px 22px', marginTop: -42 }}>
           <div className="row between" style={{ alignItems: 'flex-end' }}>
             <Avatar src={app.user.avatar} name={app.user.name} size={84} ring />
-            <Btn size="sm" variant="outline" icon={<Icons.spark size={14} />}>Edit</Btn>
+            <Btn size="sm" variant="outline" icon={<Icons.spark size={14} />} onClick={() => setEditing(true)}>Edit</Btn>
           </div>
           <div className="font-display" style={{ fontSize: 24, fontWeight: 800, marginTop: 12 }}>{app.user.name}</div>
           <div className="row gap-2" style={{ marginTop: 4 }}>
@@ -46,6 +59,14 @@ function Profile() {
         <Btn variant="outline" block onClick={() => app.nav('kyc')} icon={<Icons.shield size={16} />}>Verification</Btn>
         <Btn variant="outline" block onClick={() => app.nav('security')} icon={<Icons.lock size={16} />}>Security</Btn>
       </div>
+
+      <Sheet open={editing} onClose={() => setEditing(false)} max={440}>
+        <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 14 }}>Edit profile</h3>
+        <Field2 label="First name" value={pf.firstName} onChange={(e) => setPf((f) => ({ ...f, firstName: e.target.value }))} />
+        <Field2 label="Last name" value={pf.lastName} onChange={(e) => setPf((f) => ({ ...f, lastName: e.target.value }))} />
+        <Field2 label="Phone" value={pf.phone} onChange={(e) => setPf((f) => ({ ...f, phone: e.target.value }))} />
+        <Btn block size="lg" disabled={busy} style={{ marginTop: 8 }} icon={<Icons.check size={16} />} onClick={save}>{busy ? 'Saving…' : 'Save changes'}</Btn>
+      </Sheet>
     </div>
   );
 }
@@ -120,8 +141,21 @@ function Settings() {
 }
 
 function Security() {
+  const app = window.useApp();
   const toast = useToast();
   const [twofa, setTwofa] = useState(true);
+  const [cur, setCur] = useState('');
+  const [nw, setNw] = useState('');
+  const [busy, setBusy] = useState(false);
+  const changePw = async () => {
+    if (nw.length < 6) return toast('New password must be at least 6 characters');
+    if (app.live && window.API) {
+      setBusy(true);
+      try { await window.API.changePassword({ currentPassword: cur, newPassword: nw }); toast('Password updated ✓'); setCur(''); setNw(''); }
+      catch (e) { toast(e.message || 'Could not update password'); }
+      setBusy(false);
+    } else { toast('Password updated'); setCur(''); setNw(''); }
+  };
   const devices = [
     { name: 'iPhone 14 · Lagos', cur: true, when: 'Active now' },
     { name: 'Chrome · Windows', cur: false, when: '2 days ago' },
@@ -131,9 +165,9 @@ function Security() {
     <div className="reveal" style={{ display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 600, margin: '0 auto', width: '100%' }}>
       <Card>
         <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 14 }}>Password</h3>
-        <Field2 label="Current password" type="password" />
-        <Field2 label="New password" type="password" />
-        <Btn block style={{ marginTop: 6 }} onClick={() => toast('Password updated')} icon={<Icons.lock size={16} />}>Update password</Btn>
+        <Field2 label="Current password" type="password" value={cur} onChange={(e) => setCur(e.target.value)} />
+        <Field2 label="New password" type="password" value={nw} onChange={(e) => setNw(e.target.value)} />
+        <Btn block disabled={busy} style={{ marginTop: 6 }} onClick={changePw} icon={<Icons.lock size={16} />}>{busy ? 'Updating…' : 'Update password'}</Btn>
       </Card>
       <Card>
         <div className="row between">
@@ -229,11 +263,11 @@ function Payouts() {
   );
 }
 
-function Field2({ label, type = 'text', placeholder }) {
+function Field2({ label, type = 'text', ...p }) {
   return (
     <label style={{ display: 'block', marginBottom: 12 }}>
       <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink-2)', marginBottom: 7 }}>{label}</div>
-      <input type={type} placeholder={placeholder} style={{ width: '100%', padding: '12px 14px', borderRadius: 12, fontSize: 15, color: 'var(--ink)', background: 'var(--surface-2)', border: '1.5px solid var(--hairline)', outline: 'none' }} />
+      <input type={type} {...p} style={{ width: '100%', padding: '12px 14px', borderRadius: 12, fontSize: 15, color: 'var(--ink)', background: 'var(--surface-2)', border: '1.5px solid var(--hairline)', outline: 'none' }} />
     </label>
   );
 }

@@ -126,7 +126,9 @@ function Root() {
     ...window.DATA.user,
     name: (u.firstName + ' ' + u.lastName).trim(), first: u.firstName,
     email: u.email, phone: u.phone || window.DATA.user.phone,
-    refCode: u.refCode, refLink: 'channels.realty/r/' + u.refCode,
+    refCode: u.refCode,
+    // Use the ?ref= form that /api/auth/signup reads for attribution.
+    refLink: ((typeof location !== 'undefined' && location.host) ? location.host : 'channels.realty') + '/?ref=' + u.refCode,
     kyc: u.kycStatus === 'APPROVED', kycStatus: u.kycStatus,
     membership: u.membership || 'STARTER', role: u.role || 'USER', isAffiliate: true,
   });

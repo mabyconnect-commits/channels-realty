@@ -142,7 +142,7 @@ function Drops() {
     if (app.live && window.API && liveEstateId) {
       setBusy(true);
       try {
-        const r = await window.API.buyLand({ estateId: liveEstateId, sqm, method });
+        const r = await window.API.buyLand({ estateId: liveEstateId, sqm, method, giftCardCode: code || undefined });
         if (r.authorizationUrl) { window.location.href = r.authorizationUrl; return; } // redirect to Paystack
         app.fireConfetti(); toast('🎉 You bought ' + sqm + ' sqm!'); if (app.reload) await app.reload(); app.navRoot('portfolio');
       } catch (e) { toast(e.message || 'Could not start payment'); }

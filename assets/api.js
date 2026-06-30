@@ -73,6 +73,10 @@
     accounts: () => req('/accounts'),
     addAccount: (b) => req('/accounts', { method: 'POST', body: b }),
 
+    // account
+    updateProfile: (b) => req('/account/update', { method: 'POST', body: b }),
+    changePassword: (b) => req('/account/password', { method: 'POST', body: b }),
+
     // admin
     adminKycList: () => req('/admin/kyc'),
     adminKycDecide: (userId, decision) => req('/admin/kyc', { method: 'POST', body: { userId, decision } }),
