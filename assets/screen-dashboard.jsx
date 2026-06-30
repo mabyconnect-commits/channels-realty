@@ -17,6 +17,10 @@ function Dashboard() {
 
   return (
     <div className="reveal" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      {/* Verified Investor + Grand Launch */}
+      <VerifiedInvestorCard compact />
+      <LaunchDashCard />
+
       {/* Greeting (desktop) */}
       <div className="d-only row between" style={{ marginTop: 4 }}>
         <div>

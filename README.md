@@ -47,6 +47,11 @@ assets/
   screen-engage.jsx
   data.js                   # seed data (user, parcels, tasks)
   data2.js                  # more seed data
+  data3.js                  # launch / affiliate / investor seed data
+  globals.jsx               # promo banner, floating Top-Affiliates + support widgets, countdown
+  screen-launch.jsx         # Grand Launch, Land Drops, Gift Cards, Verification Quest
+  screen-affiliate.jsx      # Referrals & Earnings, Landing Pages, AI Promo Hub
+  screen-invest.jsx         # Portfolio, P2P Market, Instant Trade, JV, Landlords, Insider, List Estate, Membership, Orders
   styles.css                # global styles
   babel.min.js              # in-browser JSX compiler
   react.development.js
@@ -63,3 +68,10 @@ Marketplace · Estate Detail · Plot Picker · Checkout · Document Vault · Pro
 Profile · KYC · Settings · Security · Payouts · Fund Wallet · Payment Plans · Statements
 Leaderboard · Network Tree · Earnings Analytics · Marketing Toolkit · Notifications
 Rewards Store · Events · Academy · Daily Check-in · Support · News · Invite
+
+**Launch & growth (new):**
+Grand Launch (live countdown, prizes, launch leaderboard) · Land Drops (presale pricing tiers + quick-buy) ·
+Gift Cards (drop-day multiplier) · Verification Quest (gamified KYC / Verified Investor) ·
+Referrals & Earnings (signup-bonus credit + commissions) · My Landing Pages · AI Promo Hub ·
+Portfolio (All Assets) · P2P Market · Instant Trade · Joint Ventures · New Landlords ·
+Insider Investor · List an Estate · Membership (+ Royal Profile) · Orders

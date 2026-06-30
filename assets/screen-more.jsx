@@ -6,17 +6,38 @@ function MoreHub() {
   const D = window.DATA;
   const tier = D.currentTier(app.teamTotal);
   const groups = [
+    { label: '🔥 Grand Launch', items: [
+      ['launch', 'Grand Launch', Icons.fire, '#c0392b'],
+      ['drops', 'Land drops', Icons.land, 'var(--orange-500)'],
+      ['giftcards', 'Gift cards', Icons.gift, 'var(--gold)'],
+      ['membership', 'Membership', Icons.trophy, 'var(--gold)'],
+    ]},
+    { label: 'Invest', items: [
+      ['portfolio', 'Portfolio', Icons.eye, 'var(--green-600)'],
+      ['market', 'Marketplace', Icons.pin, 'var(--orange-500)'],
+      ['p2p', 'P2P market', Icons.grid, 'var(--teal-600)'],
+      ['trade', 'Instant trade', Icons.bolt, 'var(--gold)'],
+      ['jv', 'Joint ventures', Icons.users, 'var(--teal-700)'],
+      ['insider', 'Insider investor', Icons.trending, 'var(--orange-600)'],
+      ['landlords', 'New landlords', Icons.trophy, 'var(--teal-600)'],
+      ['listestate', 'List an estate', Icons.land, 'var(--green-600)'],
+    ]},
+    { label: 'Affiliate & earn', items: [
+      ['affiliate', 'Referrals & earnings', Icons.share, 'var(--orange-500)'],
+      ['pages', 'My landing pages', Icons.grid, 'var(--teal-600)'],
+      ['promo', 'Promo hub (AI)', Icons.spark, 'var(--orange-600)'],
+      ['leaderboard', 'Leaderboard', Icons.trending, 'var(--teal-600)'],
+      ['analytics', 'Earnings analytics', Icons.eye, 'var(--green-600)'],
+      ['tree', 'My network tree', Icons.users, 'var(--teal-700)'],
+    ]},
     { label: 'Earn & grow', items: [
       ['tasks', 'Tasks & points', Icons.bolt, 'var(--orange-500)'],
       ['badges', 'Rank & badges', Icons.trophy, 'var(--gold)'],
-      ['leaderboard', 'Leaderboard', Icons.trending, 'var(--teal-600)'],
-      ['analytics', 'Earnings analytics', Icons.eye, 'var(--green-600)'],
       ['toolkit', 'Marketing toolkit', Icons.share, 'var(--orange-600)'],
-      ['tree', 'My network tree', Icons.users, 'var(--teal-700)'],
     ]},
     { label: 'Property', items: [
-      ['market', 'Marketplace', Icons.pin, 'var(--orange-500)'],
       ['docs', 'Document vault', Icons.shield, 'var(--teal-600)'],
+      ['orders', 'Orders', Icons.doc, 'var(--teal-700)'],
       ['plans', 'Payment plans', Icons.card, 'var(--green-600)'],
       ['statements', 'Statements', Icons.doc, 'var(--teal-700)'],
     ]},
@@ -30,6 +51,7 @@ function MoreHub() {
     ]},
     { label: 'Account', items: [
       ['profile', 'Profile', Icons.users, 'var(--teal-600)'],
+      ['quest', 'Verification quest', Icons.shield, 'var(--green-600)'],
       ['kyc', 'Verification', Icons.shield, 'var(--green-600)'],
       ['payouts', 'Payout methods', Icons.bank, 'var(--teal-700)'],
       ['security', 'Security', Icons.lock, 'var(--orange-600)'],

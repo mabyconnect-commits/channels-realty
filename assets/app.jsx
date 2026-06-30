@@ -47,6 +47,24 @@ const SCREENS = {
   support:       { c: 'Support',           t: 'Help & Support' },
   news:          { c: 'News',              t: 'News & Updates' },
   invite:        { c: 'Invite',            t: 'Invite Friends' },
+  // ---- Launch & affiliate ----
+  launch:        { c: 'Launch',            t: 'Grand Launch' },
+  drops:         { c: 'Drops',             t: 'Land Drops' },
+  giftcards:     { c: 'GiftCards',         t: 'Gift Cards' },
+  quest:         { c: 'Quest',             t: 'Verification Quest' },
+  affiliate:     { c: 'Affiliate',         t: 'Referrals & Earnings' },
+  pages:         { c: 'LandingPages',      t: 'My Landing Pages' },
+  promo:         { c: 'PromoHub',          t: 'Promo Hub' },
+  // ---- Investors' corner ----
+  portfolio:     { c: 'Portfolio',         t: 'Portfolio' },
+  p2p:           { c: 'P2PMarket',         t: 'P2P Market' },
+  trade:         { c: 'InstantTrade',      t: 'Instant Trade' },
+  jv:            { c: 'JointVentures',     t: 'Joint Ventures' },
+  landlords:     { c: 'Landlords',         t: 'New Landlords' },
+  insider:       { c: 'InsiderInvestor',   t: 'Insider Investor' },
+  listestate:    { c: 'ListEstate',        t: 'List an Estate' },
+  membership:    { c: 'Membership',        t: 'Membership' },
+  orders:        { c: 'Orders',            t: 'Orders' },
 };
 
 const BOTTOM = [
@@ -58,16 +76,22 @@ const BOTTOM = [
 ];
 
 const SIDE_GROUPS = [
-  { label: 'Overview', items: ['dashboard', 'milestones', 'team', 'wallet'] },
-  { label: 'Grow', items: ['tasks', 'badges', 'leaderboard', 'analytics', 'toolkit', 'academy', 'events'] },
-  { label: 'Property', items: ['market', 'docs', 'plans'] },
-  { label: 'Account', items: ['profile', 'notifications', 'store', 'support', 'settings'] },
+  { label: 'Overview', items: ['dashboard', 'portfolio', 'milestones', 'team', 'wallet'] },
+  { label: 'Launch 🔥', items: ['launch', 'drops', 'giftcards', 'membership'] },
+  { label: 'Invest', items: ['market', 'p2p', 'trade', 'jv', 'insider', 'landlords', 'listestate'] },
+  { label: 'Affiliate', items: ['affiliate', 'pages', 'promo', 'leaderboard', 'analytics', 'tree'] },
+  { label: 'Grow', items: ['tasks', 'badges', 'academy', 'events'] },
+  { label: 'Account', items: ['profile', 'quest', 'orders', 'docs', 'notifications', 'support', 'settings'] },
 ];
 const SIDE_ICON = {
   dashboard: Icons.home, milestones: Icons.land, team: Icons.users, wallet: Icons.wallet,
   tasks: Icons.bolt, badges: Icons.trophy, leaderboard: Icons.trending, analytics: Icons.eye,
   toolkit: Icons.share, academy: Icons.doc, events: Icons.clock, market: Icons.pin, docs: Icons.shield,
   plans: Icons.card, profile: Icons.users, notifications: Icons.bell, store: Icons.gift, support: Icons.info, settings: Icons.spark,
+  launch: Icons.fire, drops: Icons.land, giftcards: Icons.gift, quest: Icons.shield, membership: Icons.trophy,
+  affiliate: Icons.share, pages: Icons.grid, promo: Icons.spark, portfolio: Icons.eye, p2p: Icons.grid,
+  trade: Icons.bolt, jv: Icons.users, insider: Icons.trending, landlords: Icons.pin, listestate: Icons.land,
+  orders: Icons.doc, tree: Icons.users,
 };
 
 function Root() {
@@ -174,6 +198,7 @@ function Root() {
 
             {/* Main */}
             <div className="main">
+              <PromoBanner />
               {/* Topbar (desktop) */}
               <div className="topbar d-only">
                 {isSub && <button className="chip clickable" onClick={back}><Icons.arrowLeft size={15} /> Back</button>}
@@ -227,6 +252,10 @@ function Root() {
                 );
               })}
             </nav>
+
+            {/* Floating widgets */}
+            <TopAffiliatesFab />
+            <SupportFab />
           </div>
         )}
 
