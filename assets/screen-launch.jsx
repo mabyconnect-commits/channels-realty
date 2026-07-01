@@ -13,7 +13,7 @@ function Launch() {
     <div className="reveal" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       {/* Hero */}
       <div style={{ borderRadius: 'var(--r-xl)', overflow: 'hidden', position: 'relative', textAlign: 'center',
-        background: 'linear-gradient(160deg,#7a1722,#b5302a 55%,#d9742e)', color: '#fff', padding: 'clamp(24px,5vw,40px) clamp(18px,4vw,32px)' }}>
+        background: 'linear-gradient(160deg,#1f4351,#2b5666 45%,#d9742e)', color: '#fff', padding: 'clamp(24px,5vw,40px) clamp(18px,4vw,32px)' }}>
         <div style={{ position: 'absolute', inset: 0, opacity: .12, background: 'radial-gradient(circle at 30% 20%, #fff, transparent 40%)' }} />
         <div style={{ position: 'relative' }}>
           <div className="row gap-2 center" style={{ justifyContent: 'center', fontWeight: 800, fontSize: 13, letterSpacing: '.08em' }}>
@@ -248,7 +248,7 @@ function GiftCards() {
     <div className="reveal" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <PageHead title="Gift Cards" sub="Buy a card now and get multiplied land value on Drop day." />
 
-      <Card style={{ background: 'linear-gradient(135deg,#7a1722,#c0392b)', color: '#fff' }}>
+      <Card style={{ background: 'linear-gradient(135deg,#2b5666,#d9742e)', color: '#fff' }}>
         <div className="row gap-2" style={{ fontWeight: 800, fontSize: 15 }}><Icons.spark size={18} /> Drop-day multiplier active</div>
         <p style={{ color: 'rgba(255,255,255,.85)', fontSize: 13, marginTop: 6 }}>Cards bought today convert at up to <b>2.25×</b> their face value when you buy land on launch drop.</p>
       </Card>

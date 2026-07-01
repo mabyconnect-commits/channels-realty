@@ -60,8 +60,8 @@ function PromoBanner() {
         <div key={b.id} className="row" style={{
           gap: 10, padding: '9px 14px',
           background: b.kind === 'hot'
-            ? 'linear-gradient(90deg,#8a1d2b,#c0392b,#8a1d2b)'
-            : 'linear-gradient(90deg,#1f6b43,#2f8f5b,#1f6b43)',
+            ? 'linear-gradient(90deg,#20414d,#2b5666,#20414d)'
+            : 'linear-gradient(90deg,#bd6222,#d9742e,#bd6222)',
           color: '#fff', fontWeight: 800, fontSize: 13 }}>
           <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.text}</span>
           <button onClick={() => app.navRoot(b.to)} style={{
@@ -125,15 +125,15 @@ function SupportFab() {
     <>
       <button onClick={() => setOpen(true)} aria-label="Support" style={{
         position: 'fixed', right: 16, bottom: 'calc(82px + env(safe-area-inset-bottom))', zIndex: 40,
-        width: 58, height: 58, borderRadius: '50%', background: 'var(--green-600)', color: '#fff',
+        width: 58, height: 58, borderRadius: '50%', background: 'var(--teal-700)', color: '#fff',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 12px 30px color-mix(in srgb, var(--green-600) 50%, transparent)' }}>
+        boxShadow: '0 12px 30px color-mix(in srgb, var(--teal-700) 50%, transparent)' }}>
         <Icons.whatsapp size={26} />
-        <span style={{ position: 'absolute', top: 4, right: 6, width: 11, height: 11, borderRadius: '50%', background: 'var(--gold)', border: '2px solid var(--green-600)' }} />
+        <span style={{ position: 'absolute', top: 4, right: 6, width: 11, height: 11, borderRadius: '50%', background: 'var(--gold)', border: '2px solid var(--teal-700)' }} />
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} max={460}>
         <div className="row gap-3" style={{ marginBottom: 14 }}>
-          <div style={{ width: 46, height: 46, borderRadius: 14, background: 'var(--green-50)', color: 'var(--green-600)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icons.whatsapp size={24} /></div>
+          <div style={{ width: 46, height: 46, borderRadius: 14, background: 'var(--teal-50)', color: 'var(--teal-700)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icons.whatsapp size={24} /></div>
           <div><div style={{ fontWeight: 800, fontSize: 17 }}>Channels Support</div><div className="muted" style={{ fontSize: 13 }}>Typically replies in a few minutes</div></div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
@@ -199,7 +199,7 @@ function LaunchDashCard() {
   const L = window.DATA3.launch;
   return (
     <div style={{ borderRadius: 'var(--r-xl)', overflow: 'hidden', position: 'relative',
-      background: 'linear-gradient(135deg,#8a1d2b,#c0392b 55%,#d9742e)', color: '#fff' }}>
+      background: 'linear-gradient(135deg,#20414d,#2b5666 50%,#d9742e)', color: '#fff' }}>
       <div style={{ position: 'absolute', top: -50, right: -30, opacity: .18 }}><Icons.gift size={170} /></div>
       <div style={{ position: 'relative', padding: 'clamp(18px,4vw,26px)' }}>
         <div className="row gap-2" style={{ fontWeight: 800, fontSize: 12.5, letterSpacing: '.05em' }}>

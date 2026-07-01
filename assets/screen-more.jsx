@@ -7,7 +7,7 @@ function MoreHub() {
   const tier = D.currentTier(app.teamTotal);
   const groups = [
     { label: '🔥 Grand Launch', items: [
-      ['launch', 'Grand Launch', Icons.fire, '#c0392b'],
+      ['launch', 'Grand Launch', Icons.fire, 'var(--orange-500)'],
       ['drops', 'Land drops', Icons.land, 'var(--orange-500)'],
       ['giftcards', 'Gift cards', Icons.gift, 'var(--gold)'],
       ['membership', 'Membership', Icons.trophy, 'var(--gold)'],
